@@ -1,10 +1,8 @@
 #include "game_state.hpp"
-#include "mission_status.hpp"
 
 GameState::GameState(StateStack& stack, Context context) : State(stack, context), m_world(*context.window, *context.fonts, *context.sound, false), m_player(nullptr, 1, context.keys1)
 {
-	m_world.AddAircraft(1);
-	m_player.SetMissionStatus(MissionStatus::kMissionRunning);
+	m_world.AddCar(1, CarType::kBasic);
 	context.music->Play(MusicThemes::kMissionTheme);
 }
 
@@ -19,13 +17,7 @@ bool GameState::Update(sf::Time dt)
 
 	if (!m_world.HasAlivePlayer())
 	{
-		m_player.SetMissionStatus(MissionStatus::kMissionFailure);
 		RequestStackPush(StateID::kGameOver);
-	}
-	else if (m_world.HasPlayerReachedEnd())
-	{
-		m_player.SetMissionStatus(MissionStatus::kMissionSuccess);
-		RequestStackPush(StateID::kMissionSuccess);
 	}
 
 	CommandQueue& commands = m_world.GetCommandQueue();

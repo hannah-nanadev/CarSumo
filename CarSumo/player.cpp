@@ -1,65 +1,32 @@
 #include "player.hpp"
 #include "command_queue.hpp"
-#include "aircraft.hpp"
+#include "car.hpp"
 
 #include "network_protocol.hpp"
 #include <SFML/Network/Packet.hpp>
 
 #include <map>
 
-struct AircraftMover
+struct CarMover
 {
-    AircraftMover(float vx, float vy, int identifier) 
+    CarMover(float vx, float vy, int identifier) 
         : velocity(vx, vy) 
-        , aircraft_id(identifier)
+        , car_id(identifier)
     {}
-    void operator()(Aircraft& aircraft, sf::Time) const
+    void operator()(Car& car, sf::Time) const
     {
-        if (aircraft.GetIdentifier() == aircraft_id)
+        if (car.GetIdentifier() == car_id)
         {
-            aircraft.Accelerate(velocity * aircraft.GetMaxSpeed());
+            car.Accelerate(velocity * car.GetMaxSpeed());
         }
     }
 
     sf::Vector2f velocity;
-    int aircraft_id;
-};
-
-struct AircraftFireTrigger
-{
-    AircraftFireTrigger(int identifier)
-        : aircraft_id(identifier)
-    {
-    }
-
-    void operator() (Aircraft& aircraft, sf::Time) const
-    {
-        if (aircraft.GetIdentifier() == aircraft_id)
-            aircraft.Fire();
-    }
-
-    int aircraft_id;
-};
-
-struct AircraftMissileTrigger
-{
-    AircraftMissileTrigger(int identifier)
-        : aircraft_id(identifier)
-    {
-    }
-
-    void operator() (Aircraft& aircraft, sf::Time) const
-    {
-        if (aircraft.GetIdentifier() == aircraft_id)
-            aircraft.LaunchMissile();
-    }
-
-    int aircraft_id;
+    int car_id;
 };
 
 Player::Player(sf::TcpSocket* socket, uint8_t identifier, const KeyBinding* binding)
     : m_key_binding(binding)
-    , m_current_mission_status(MissionStatus::kMissionRunning)
     , m_identifier(identifier)
     , m_socket(socket)
 {
@@ -67,7 +34,7 @@ Player::Player(sf::TcpSocket* socket, uint8_t identifier, const KeyBinding* bind
 
     for (auto& pair : m_action_binding)
     {
-        pair.second.category = static_cast<unsigned int>(ReceiverCategories::kPlayerAircraft);
+        pair.second.category = static_cast<unsigned int>(ReceiverCategories::kPlayerCar);
     }
 }
 
@@ -179,23 +146,10 @@ void Player::HandleNetworkRealtimeChange(Action action, bool actionEnabled)
     m_action_proxies[action] = actionEnabled;
 }
 
-
-void Player::SetMissionStatus(MissionStatus status)
-{
-    m_current_mission_status = status;
-}
-
-MissionStatus Player::GetMissionStatus() const
-{
-    return m_current_mission_status;
-}
-
 void Player::InitialiseActions()
 {
-    m_action_binding[Action::kMoveLeft].action = DerivedAction<Aircraft>(AircraftMover(-1, 0.f, m_identifier));
-    m_action_binding[Action::kMoveRight].action = DerivedAction<Aircraft>(AircraftMover(+1, 0.f, m_identifier));
-    m_action_binding[Action::kMoveUp].action = DerivedAction<Aircraft>(AircraftMover(0.f, -1, m_identifier));
-    m_action_binding[Action::kMoveDown].action = DerivedAction<Aircraft>(AircraftMover(0.f, 1, m_identifier));
-    m_action_binding[Action::kBulletFire].action = DerivedAction<Aircraft>(AircraftFireTrigger(m_identifier));
-    m_action_binding[Action::kMissileFire].action = DerivedAction<Aircraft>(AircraftMissileTrigger(m_identifier));
+    m_action_binding[Action::kTurnLeft].action = DerivedAction<Car>(CarMover(-1, 0.f, m_identifier));
+    m_action_binding[Action::kTurnRight].action = DerivedAction<Car>(CarMover(+1, 0.f, m_identifier));
+    m_action_binding[Action::kForward].action = DerivedAction<Car>(CarMover(0.f, -1, m_identifier));
+    m_action_binding[Action::kReverse].action = DerivedAction<Car>(CarMover(0.f, 1, m_identifier));
 }

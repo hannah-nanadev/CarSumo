@@ -9,12 +9,10 @@ SettingsState::SettingsState(StateStack& stack, Context context)
     //Build key binding buttons and labels
     for (std::size_t x = 0; x < 2; ++x)
     {
-        AddButtonLabel(static_cast<int>(Action::kMoveLeft), x, 0, "Move Left", context);
-        AddButtonLabel(static_cast<int>(Action::kMoveRight), x, 1, "Move Right", context);
-        AddButtonLabel(static_cast<int>(Action::kMoveUp), x, 2, "Move Up", context);
-        AddButtonLabel(static_cast<int>(Action::kMoveDown), x, 3, "Move Down", context);
-        AddButtonLabel(static_cast<int>(Action::kBulletFire), x, 4, "Fire", context);
-        AddButtonLabel(static_cast<int>(Action::kMissileFire), x, 5, "Missile", context);
+        AddButtonLabel(static_cast<int>(Action::kTurnLeft), x, 0, "Turn Left", context);
+        AddButtonLabel(static_cast<int>(Action::kTurnRight), x, 1, "Turn Right", context);
+        AddButtonLabel(static_cast<int>(Action::kForward), x, 2, "Forward", context);
+        AddButtonLabel(static_cast<int>(Action::kReverse), x, 3, "Reverse", context);
     }
 
     UpdateLabels();

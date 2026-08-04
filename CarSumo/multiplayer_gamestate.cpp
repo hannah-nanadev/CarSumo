@@ -7,7 +7,6 @@
 #include <SFML/Network/IpAddress.hpp>
 
 #include <fstream>
-#include "pickup_type.hpp"
 #include <iostream>
 
 sf::IpAddress GetAddressFromFile()
@@ -145,7 +144,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 		m_world.Update(dt);
 
 
-		//Remove players whose aircraft were destroyed
+		//Remove players whose car were destroyed
 		bool found_local_plane = false;
 		for (auto itr = m_players.begin(); itr != m_players.end();)
 		{
@@ -155,7 +154,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 				found_local_plane = true;
 			}
 
-			if (!m_world.GetAircraft(itr->first))
+			if (!m_world.GetCar(itr->first))
 			{
 				itr = m_players.erase(itr);
 
@@ -246,9 +245,9 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 			for (uint8_t identifier : m_local_player_identifiers)
 			{
-				if (Aircraft* aircraft = m_world.GetAircraft(identifier))
+				if (Car* car = m_world.GetCar(identifier))
 				{
-					position_update_packet << identifier << aircraft->getPosition().x << aircraft->getPosition().y << static_cast<uint8_t>(aircraft->GetHitPoints()) << static_cast<uint8_t>(aircraft->GetMissileAmmo());
+					position_update_packet << identifier << car->getPosition().x << car->getPosition().y << static_cast<uint8_t>(car->GetHitPoints());
 				}
 			}
 			m_socket.send(position_update_packet);
@@ -374,89 +373,83 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	}
 	break;
 
-	//Sent by the server to spawn player 1 airplane on connect
+	//Sent by the server to spawn player 1 car on connect
 	case Server::PacketType::kSpawnSelf:
 	{
-		uint8_t aircraft_identifier;
-		sf::Vector2f aircraft_position;
-		packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y;
-		std::cout << "Client kSpawnSelf" << +aircraft_identifier << std::endl;
-		Aircraft* aircraft = m_world.AddAircraft(aircraft_identifier);
-		aircraft->setPosition(aircraft_position);
-		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, GetContext().keys1));
-		m_local_player_identifiers.push_back(aircraft_identifier);
+		uint8_t car_identifier;
+		sf::Vector2f car_position;
+		packet >> car_identifier >> car_position.x >> car_position.y;
+		std::cout << "Client kSpawnSelf" << +car_identifier << std::endl;
+		Car* car = m_world.AddCar(car_identifier, CarType::kBasic);
+		car->setPosition(car_position);
+		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, GetContext().keys1));
+		m_local_player_identifiers.push_back(car_identifier);
 		m_game_started = true;
 	}
 	break;
 
 	case Server::PacketType::kPlayerConnect:
 	{
-		uint8_t aircraft_identifier;
-		sf::Vector2f aircraft_position;
-		packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y;
+		uint8_t car_identifier;
+		sf::Vector2f car_position;
+		packet >> car_identifier >> car_position.x >> car_position.y;
 
-		Aircraft* aircraft = m_world.AddAircraft(aircraft_identifier);
-		aircraft->setPosition(aircraft_position);
-		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, nullptr));
+		Car* car = m_world.AddCar(car_identifier, CarType::kBasic);
+		car->setPosition(car_position);
+		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));
 	}
 	break;
 
 	case Server::PacketType::kPlayerDisconnect:
 	{
-		uint8_t aircraft_identifier;
-		packet >> aircraft_identifier;
-		m_world.RemoveAircraft(aircraft_identifier);
-		m_players.erase(aircraft_identifier);
+		uint8_t car_identifier;
+		packet >> car_identifier;
+		m_world.RemoveCar(car_identifier);
+		m_players.erase(car_identifier);
 	}
 	break;
 
 	case Server::PacketType::kInitialState:
 	{
-		uint8_t aircraft_count;
-		float world_height, current_scroll;
-		packet >> world_height >> current_scroll;
+		uint8_t car_count;
 
-		m_world.SetWorldHeight(world_height);
-		m_world.SetCurrentBattleFieldPosition(current_scroll);
-
-		packet >> aircraft_count;
-		for (uint8_t i = 0; i < aircraft_count; ++i)
+		packet >> car_count;
+		for (uint8_t i = 0; i < car_count; ++i)
 		{
-			uint8_t aircraft_identifier;
+			uint8_t car_identifier;
 			uint8_t hitpoints;
 			uint8_t missile_ammo;
-			sf::Vector2f aircraft_position;
-			packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> hitpoints >> missile_ammo;
+			sf::Vector2f car_position;
+			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> missile_ammo;
 
-			Aircraft* aircraft = m_world.AddAircraft(aircraft_identifier);
-			aircraft->setPosition(aircraft_position);
-			aircraft->SetHitpoints(hitpoints);
-			aircraft->SetMissileAmmo(missile_ammo);
+			Car* car = m_world.AddCar(car_identifier, CarType::kBasic);
+			car->setPosition(car_position);
+			car->SetHitpoints(hitpoints);
 
-			m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, nullptr));
+			m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));
 		}
 	}
 	break;
 
 	case Server::PacketType::kAcceptCoopPartner:
 	{
-		uint8_t aircraft_identifier;
-		packet >> aircraft_identifier;
+		uint8_t car_identifier;
+		packet >> car_identifier;
 
-		m_world.AddAircraft(aircraft_identifier);
-		m_players[aircraft_identifier].reset(new Player(&m_socket, aircraft_identifier, GetContext().keys2));
-		m_local_player_identifiers.emplace_back(aircraft_identifier);
+		m_world.AddCar(car_identifier, CarType::kBasic);
+		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, GetContext().keys2));
+		m_local_player_identifiers.emplace_back(car_identifier);
 	}
 	break;
 
 	//Player event, like missile fired occurs
 	case Server::PacketType::kPlayerEvent:
 	{
-		uint8_t aircraft_identifier;
+		uint8_t car_identifier;
 		uint8_t action;
-		packet >> aircraft_identifier >> action;
-		std::cout << "Player Event" << aircraft_identifier << std::endl;
-		auto itr = m_players.find(aircraft_identifier);
+		packet >> car_identifier >> action;
+		std::cout << "Player Event" << car_identifier << std::endl;
+		auto itr = m_players.find(car_identifier);
 		if (itr != m_players.end())
 		{
 			std::cout << "Handling Network Event" << std::endl;
@@ -468,29 +461,16 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	//Player's movement or fire keyboard state changes
 	case Server::PacketType::kPlayerRealtimeChange:
 	{
-		uint8_t aircraft_identifier;
+		uint8_t car_identifier;
 		uint8_t action;
 		bool action_enabled;
-		packet >> aircraft_identifier >> action >> action_enabled;
+		packet >> car_identifier >> action >> action_enabled;
 
-		auto itr = m_players.find(aircraft_identifier);
+		auto itr = m_players.find(car_identifier);
 		if (itr != m_players.end())
 		{
 			itr->second->HandleNetworkRealtimeChange(static_cast<Action>(action), action_enabled);
 		}
-	}
-	break;
-
-	//New Enemy to be created
-	case Server::PacketType::kSpawnEnemy:
-	{
-		float height;
-		uint8_t type;
-		float relative_x;
-		packet >> type >> height >> relative_x;
-
-		m_world.AddEnemy(static_cast<AircraftType>(type), relative_x, height);
-		m_world.SortEnemies();
 	}
 	break;
 
@@ -501,43 +481,32 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	}
 	break;
 
-	//Pickup created
-	case Server::PacketType::kSpawnPickup:
-	{
-		uint8_t type;
-		sf::Vector2f position;
-		packet >> type >> position.x >> position.y;
-		m_world.CreatePickup(position, static_cast<PickupType>(type));
-	}
-	break;
-
 	case Server::PacketType::kUpdateClientState:
 	{
 		float current_world_position;
-		uint8_t aircraft_count;
-		packet >> current_world_position >> aircraft_count;
+		uint8_t car_count;
+		packet >> current_world_position >> car_count;
 
 		float current_view_position = m_world.GetViewBounds().position.y + m_world.GetViewBounds().size.y;
 
 		//Set the world's scroll compensation according to whether the view is behind or ahead
 		m_world.SetWorldScrollCompensation(current_view_position / current_world_position);
 
-		for (uint8_t i = 0; i < aircraft_count; ++i)
+		for (uint8_t i = 0; i < car_count; ++i)
 		{
-			sf::Vector2f aircraft_position;
-			uint8_t aircraft_identifier;
+			sf::Vector2f car_position;
+			uint8_t car_identifier;
 			uint8_t hitpoints;
 			uint8_t ammo;
-			packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> hitpoints >> ammo;
+			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> ammo;
 
-			Aircraft* aircraft = m_world.GetAircraft(aircraft_identifier);
-			bool is_local_plane = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), aircraft_identifier) != m_local_player_identifiers.end();
-			if (aircraft && !is_local_plane)
+			Car* car = m_world.GetCar(car_identifier);
+			bool is_local_plane = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), car_identifier) != m_local_player_identifiers.end();
+			if (car && !is_local_plane)
 			{
-				sf::Vector2f interpolated_position = aircraft->getPosition() + (aircraft_position - aircraft->getPosition()) * 0.1f;
-				aircraft->setPosition(interpolated_position);
-				aircraft->SetHitpoints(hitpoints);
-				aircraft->SetMissileAmmo(ammo);
+				sf::Vector2f interpolated_position = car->getPosition() + (car_position - car->getPosition()) * 0.1f;
+				car->setPosition(interpolated_position);
+				car->SetHitpoints(hitpoints);
 			}
 		}
 	}

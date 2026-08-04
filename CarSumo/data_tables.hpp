@@ -2,7 +2,7 @@
 #include "texture_id.hpp"
 #include <SFML/System/Time.hpp>
 #include <functional>
-#include "aircraft.hpp"
+#include "car.hpp"
 
 struct Direction
 {
@@ -13,7 +13,7 @@ struct Direction
 	float m_distance;
 };
 
-struct AircraftData
+struct CarData
 {
 	int m_hitpoints;
 	float m_speed;
@@ -21,7 +21,6 @@ struct AircraftData
 	sf::IntRect m_texture_rect;
 	sf::Time m_fire_interval;
 	std::vector<Direction> m_directions;
-	bool m_has_roll_animation;
 };
 
 struct ProjectileData
@@ -34,7 +33,7 @@ struct ProjectileData
 
 struct PickupData
 {
-	std::function<void(Aircraft&)> m_action;
+	std::function<void(Car&)> m_action;
 	TextureID m_texture;
 	sf::IntRect m_texture_rect;
 };
@@ -45,9 +44,7 @@ struct ParticleData
 	sf::Time m_lifetime;
 };
 
-std::vector<AircraftData> InitializeAircraftData();
-std::vector<ProjectileData> InitializeProjectileData();
-std::vector<PickupData> InitializePickupData();
+std::vector<CarData> InitializeCarData();
 std::vector<ParticleData> InitializeParticleData();
 
 
