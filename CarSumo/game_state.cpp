@@ -17,7 +17,7 @@ bool GameState::Update(sf::Time dt)
 
 	if (!m_world.HasAlivePlayer())
 	{
-		RequestStackPush(StateID::kGameOver);
+		RequestStackPush(StateID::kDraw);
 	}
 
 	CommandQueue& commands = m_world.GetCommandQueue();

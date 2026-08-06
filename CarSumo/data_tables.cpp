@@ -11,22 +11,22 @@ std::vector<CarData> InitializeCarData()
 
 	data[static_cast<int>(CarType::kBasic)].m_hitpoints = 100;
 	data[static_cast<int>(CarType::kBasic)].m_speed = 200.f;
-	data[static_cast<int>(CarType::kBasic)].m_texture = TextureID::kEntities;
+	data[static_cast<int>(CarType::kBasic)].m_texture = TextureID::kCars;
 	data[static_cast<int>(CarType::kBasic)].m_texture_rect = sf::IntRect({0, 0}, {48, 64});
 
 	data[static_cast<int>(CarType::kJeep)].m_hitpoints = 20;
 	data[static_cast<int>(CarType::kJeep)].m_speed = 80.f;
-	data[static_cast<int>(CarType::kJeep)].m_texture = TextureID::kEntities;
+	data[static_cast<int>(CarType::kJeep)].m_texture = TextureID::kCars;
 	data[static_cast<int>(CarType::kJeep)].m_texture_rect = sf::IntRect({ 144, 0}, { 84, 64 });
 
 	data[static_cast<int>(CarType::kTruck)].m_hitpoints = 40;
 	data[static_cast<int>(CarType::kTruck)].m_speed = 50.f;
-	data[static_cast<int>(CarType::kTruck)].m_texture = TextureID::kEntities;
+	data[static_cast<int>(CarType::kTruck)].m_texture = TextureID::kCars;
 	data[static_cast<int>(CarType::kTruck)].m_texture_rect = sf::IntRect({ 228, 0 }, { 60, 59});
 
 	data[static_cast<int>(CarType::kMonster)].m_hitpoints = 40;
 	data[static_cast<int>(CarType::kMonster)].m_speed = 50.f;
-	data[static_cast<int>(CarType::kMonster)].m_texture = TextureID::kEntities;
+	data[static_cast<int>(CarType::kMonster)].m_texture = TextureID::kCars;
 	data[static_cast<int>(CarType::kMonster)].m_texture_rect = sf::IntRect({ 228, 0 }, { 60, 59 });
 
 	return data;

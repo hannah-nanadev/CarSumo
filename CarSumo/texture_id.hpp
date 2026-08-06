@@ -10,7 +10,7 @@ enum class TextureID
 	kButtonNormal,
 	kButtonSelected,
 	kButtonActivated,
-	kEntities,
+	kCars,
 	kButtons,
 	kExplosion,
 	kArena,

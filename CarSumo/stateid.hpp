@@ -4,12 +4,14 @@ enum class StateID
 	kNone,
 	kTitle,
 	kMenu,
+	kCarSelect,
 	kGame,
 	kPause,
 	kNetworkPause,
 	kSettings,
-	kGameOver,
-	kMissionSuccess,
+	kP1Win,
+	kP2Win,
+	kDraw,
 	kHostGame,
 	kJoinGame
 };

@@ -15,7 +15,7 @@ World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sou
 	, m_sounds(sounds)
 	, m_scene_graph(ReceiverCategories::kNone)
 	, m_scene_layers()
-	, m_world_bounds(sf::Vector2f(0.f, 0.f), sf::Vector2f(m_camera.getSize().x, 5000.f))
+	, m_world_bounds(sf::Vector2f(0.f, 0.f), sf::Vector2f(m_camera.getSize().x, m_camera.getSize().y))
 	, m_spawn_position(m_camera.getSize().x / 2.f, m_world_bounds.size.y - m_camera.getSize().y/2.f)
 	, m_player_car()
 	, m_networked_world(networked)
@@ -26,11 +26,6 @@ World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sou
 	LoadTextures();
 	BuildScene();
 	m_camera.setCenter(m_spawn_position);
-}
-
-void World::SetWorldScrollCompensation(float compensation)
-{
-	m_scrollspeed_compensation = compensation;
 }
 
 void World::Update(sf::Time dt)
@@ -121,9 +116,9 @@ bool World::HasAlivePlayer() const
 
 void World::LoadTextures()
 {
-	m_textures.Load(TextureID::kEntities, "Media/Textures/Entities.png");
+	m_textures.Load(TextureID::kCars, "Media/Textures/carscombined.png");
 	m_textures.Load(TextureID::kExplosion, "Media/Textures/Explosion.png");
-	m_textures.Load(TextureID::kArena, "Media/Textures/Arena.png");
+	m_textures.Load(TextureID::kArena, "Media/Textures/arena.png");
 	m_textures.Load(TextureID::kParticle, "Media/Textures/Particle.png");
 }
 
@@ -151,12 +146,14 @@ void World::BuildScene()
 	background_sprite->setPosition(sf::Vector2f(m_world_bounds.position.x, m_world_bounds.position.y - view_height));
 	m_scene_layers[static_cast<int>(SceneLayers::kBackground)]->AttachChild(std::move(background_sprite));
 
+	/*
 	//Add the particle nodes to the scene
 	std::unique_ptr<ParticleNode> smokeNode(new ParticleNode(ParticleType::kSmoke, m_textures));
 	m_scene_layers[static_cast<int>(SceneLayers::kLowerAir)]->AttachChild(std::move(smokeNode));
 
 	std::unique_ptr<ParticleNode> propellantNode(new ParticleNode(ParticleType::kPropellant, m_textures));
 	m_scene_layers[static_cast<int>(SceneLayers::kLowerAir)]->AttachChild(std::move(propellantNode));
+	*/
 
 	//Add sound effect node
 	std::unique_ptr<SoundNode> soundNode(new SoundNode(m_sounds));

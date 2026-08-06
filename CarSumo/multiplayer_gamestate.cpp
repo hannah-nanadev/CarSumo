@@ -161,7 +161,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 				//No more players left : Mission failed
 				if (m_players.empty())
 				{
-					RequestStackPush(StateID::kGameOver);
+					RequestStackPush(StateID::kDraw);
 				}
 			}
 			else
@@ -172,7 +172,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 		if (!found_local_plane && m_game_started)
 		{
-			RequestStackPush(StateID::kGameOver);
+			RequestStackPush(StateID::kP2Win);
 		}
 
 		//Only handle the realtime input if the window has focus and the game is unpaused
@@ -474,13 +474,6 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	}
 	break;
 
-	//Mission Successfully completed
-	case Server::PacketType::kMissionSuccess:
-	{
-		RequestStackPush(StateID::kMissionSuccess);
-	}
-	break;
-
 	case Server::PacketType::kUpdateClientState:
 	{
 		float current_world_position;
@@ -488,9 +481,6 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		packet >> current_world_position >> car_count;
 
 		float current_view_position = m_world.GetViewBounds().position.y + m_world.GetViewBounds().size.y;
-
-		//Set the world's scroll compensation according to whether the view is behind or ahead
-		m_world.SetWorldScrollCompensation(current_view_position / current_world_position);
 
 		for (uint8_t i = 0; i < car_count; ++i)
 		{
