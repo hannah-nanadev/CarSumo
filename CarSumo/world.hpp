@@ -34,6 +34,8 @@ public:
 private:
 	void LoadTextures();
 	void BuildScene();
+	void AdaptPlayerVelocity();
+	void AdaptPlayerPosition();
 
 	void HandleCollisions();
 

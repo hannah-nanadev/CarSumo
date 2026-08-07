@@ -167,6 +167,39 @@ void World::BuildScene()
 	}
 }
 
+void World::AdaptPlayerVelocity()
+{
+	for (Car* car : m_player_car)
+	{
+		sf::Vector2f velocity = car->GetVelocity();
+
+		//If they are moving diagonally divide by sqrt 2
+		if (velocity.x != 0.f && velocity.y != 0.f)
+		{
+			car->SetVelocity(velocity / std::sqrt(2.f));
+		}
+
+	}
+}
+
+void World::AdaptPlayerPosition()
+{
+	//keep player on the screen
+	sf::FloatRect view_bounds = GetViewBounds();
+	const float border_distance = 40.f;
+
+	for (Car* car : m_player_car)
+	{
+		sf::Vector2f position = car->getPosition();
+		position.x = std::min(position.x, view_bounds.position.x + view_bounds.size.x - border_distance);
+		position.x = std::max(position.x, view_bounds.position.x + border_distance);
+		position.y = std::min(position.y, view_bounds.position.y + view_bounds.size.y - border_distance);
+		position.y = std::max(position.y, view_bounds.position.y + border_distance);
+		car->setPosition(position);
+	}
+
+}
+
 sf::FloatRect World::GetViewBounds() const
 {
 	return sf::FloatRect(m_camera.getCenter() - m_camera.getSize() / 2.f, m_camera.getSize());

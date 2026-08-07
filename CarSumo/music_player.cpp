@@ -1,10 +1,10 @@
 #include "music_player.hpp"
 
 MusicPlayer::MusicPlayer()
-	: m_volume(100.f)
+	: m_volume(25.f)
 {
-	m_filenames[MusicThemes::kMenuTheme] = "Media/Music/MenuTheme.ogg";
-	m_filenames[MusicThemes::kMissionTheme] = "Media/Music/MissionTheme.ogg";
+	m_filenames[MusicThemes::kMenuTheme] = "Media/Music/Slam_area.mp3";
+	m_filenames[MusicThemes::kMissionTheme] = "Media/Music/Baring_Their_Fangs.mp3";
 }
 
 void MusicPlayer::Play(MusicThemes theme)
