@@ -20,8 +20,24 @@ struct CarMover
             car.Accelerate(velocity * car.GetMaxSpeed());
         }
     }
-
     sf::Vector2f velocity;
+    int car_id;
+};
+
+struct CarTurner
+    {
+    CarTurner(float amount, int identifier)
+        : turn_amount(*new sf::Angle(sf::degrees(amount)))
+        , car_id(identifier)
+    {}
+    void operator()(Car& car, sf::Time) const
+    {
+        if (car.GetIdentifier() == car_id)
+        {
+            car.Turn(turn_amount);
+        }
+    }
+    sf::Angle turn_amount;
     int car_id;
 };
 
@@ -148,8 +164,8 @@ void Player::HandleNetworkRealtimeChange(Action action, bool actionEnabled)
 
 void Player::InitialiseActions()
 {
-    m_action_binding[Action::kTurnLeft].action = DerivedAction<Car>(CarMover(-1, 0.f, m_identifier));
-    m_action_binding[Action::kTurnRight].action = DerivedAction<Car>(CarMover(+1, 0.f, m_identifier));
+    m_action_binding[Action::kTurnLeft].action = DerivedAction<Car>(CarTurner(-1.0f, m_identifier)); //DerivedAction<Car>(CarMover(-1, 0.f, m_identifier));
+    m_action_binding[Action::kTurnRight].action = DerivedAction<Car>(CarTurner(1.0f, m_identifier));
     m_action_binding[Action::kForward].action = DerivedAction<Car>(CarMover(0.f, -1, m_identifier));
     m_action_binding[Action::kReverse].action = DerivedAction<Car>(CarMover(0.f, 1, m_identifier));
 }

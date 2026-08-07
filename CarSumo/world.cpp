@@ -36,6 +36,7 @@ void World::Update(sf::Time dt)
 		m_scene_graph.OnCommand(m_command_queue.Pop(), dt);
 	}
 
+	AdaptPlayerVelocity();
 	HandleCollisions();
 
 	auto first_to_remove = std::remove_if(m_player_car.begin(), m_player_car.end(), std::mem_fn(&Car::IsMarkedForRemoval));
@@ -43,6 +44,7 @@ void World::Update(sf::Time dt)
 	m_scene_graph.RemoveWrecks();
 
 	m_scene_graph.Update(dt, m_command_queue);
+	AdaptPlayerPosition();
 	//UpdateSounds();
 }
 
@@ -186,7 +188,7 @@ void World::AdaptPlayerPosition()
 {
 	//keep player on the screen
 	sf::FloatRect view_bounds = GetViewBounds();
-	const float border_distance = 40.f;
+	const float border_distance = 10.f;
 
 	for (Car* car : m_player_car)
 	{

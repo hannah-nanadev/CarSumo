@@ -15,7 +15,6 @@ public:
 	void SetIdentifier(uint8_t identifier);
 
 	void UpdateTexts();
-	void UpdateMovementPattern(sf::Time dt);
 
 	float GetMaxSpeed() const;
 

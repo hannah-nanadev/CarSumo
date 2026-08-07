@@ -88,22 +88,6 @@ void Car::UpdateTexts()
 	m_health_display->setRotation(-getRotation());
 }
 
-void Car::UpdateMovementPattern(sf::Time dt)
-{
-	//Enemy AI
-	const std::vector<Direction>& directions = Table[static_cast<int>(m_type)].m_directions;
-	if (!directions.empty())
-	{
-		//Compute the velocity
-		//Add 90 to move down the screen, 0 degrees is to the right
-		double radians = Utility::ToRadians(directions[m_directions_index].m_angle + 90.f);
-		float vx = GetMaxSpeed() * std::cos(radians);
-		float vy = GetMaxSpeed() * std::sin(radians);
-
-		SetVelocity(sf::Vector2f(vx, vy));
-	}
-}
-
 float Car::GetMaxSpeed() const
 {
 	return Table[static_cast<int>(m_type)].m_speed;
@@ -161,7 +145,7 @@ void Car::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 	}
 	Entity::UpdateCurrent(dt, commands);
 	UpdateTexts();
-	UpdateMovementPattern(dt);
+	std::cout << "Car " << +m_identifier << " Position: " << GetWorldPosition().x << ", " << GetWorldPosition().y << std::endl;
 }
 
 void Car::Remove()

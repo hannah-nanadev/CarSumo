@@ -26,6 +26,11 @@ void Entity::Accelerate(sf::Vector2f velocity)
 	m_velocity += velocity;
 }
 
+void Entity::Turn(sf::Angle amount)
+{
+	m_rotation_speed += amount;
+}
+
 void Entity::Accelerate(float vx, float vy)
 {
 	m_velocity.x += vx;
@@ -68,6 +73,7 @@ bool Entity::IsDestroyed() const
 void Entity::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 {
 	move(m_velocity * dt.asSeconds());
+	rotate(m_rotation_speed * dt.asSeconds());
 }
 
 void Entity::Remove()

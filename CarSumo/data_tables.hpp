@@ -17,6 +17,7 @@ struct CarData
 {
 	int m_hitpoints;
 	float m_speed;
+	float m_turnspeed;
 	TextureID m_texture;
 	sf::IntRect m_texture_rect;
 	sf::Time m_fire_interval;
