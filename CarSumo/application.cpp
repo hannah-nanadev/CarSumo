@@ -6,6 +6,7 @@
 #include "menu_state.hpp"
 #include "pause_state.hpp"
 #include "settings_state.hpp"
+#include "selectcar_state.hpp"
 #include "game_over_state.hpp"
 #include "multiplayer_gamestate.hpp"
 
@@ -76,6 +77,7 @@ void Application::RegisterStates()
 {
 	m_stack.RegisterState<TitleState>(StateID::kTitle);
 	m_stack.RegisterState<MenuState>(StateID::kMenu);
+	m_stack.RegisterState<SelectCarState>(StateID::kCarSelect);
 	m_stack.RegisterState<GameState>(StateID::kGame);
 	m_stack.RegisterState<MultiplayerGameState>(StateID::kHostGame, true);
 	m_stack.RegisterState<MultiplayerGameState>(StateID::kJoinGame, false);

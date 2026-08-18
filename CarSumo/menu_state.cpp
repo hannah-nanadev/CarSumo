@@ -42,8 +42,18 @@ MenuState::MenuState(StateStack& stack, Context context) : State(stack, context)
             RequestStackPush(StateID::kSettings);
         });
 
+    //Temp to test the select car state
+
+    auto selectcar_button = std::make_shared<gui::Button>(context);
+    selectcar_button->setPosition(sf::Vector2f(100, 500));
+    selectcar_button->SetText("Select Car");
+    selectcar_button->SetCallback([this]()
+        {
+            RequestStackPush(StateID::kCarSelect);
+        });
+
     auto exit_button = std::make_shared<gui::Button>(context);
-    exit_button->setPosition(sf::Vector2f(100, 500));
+    exit_button->setPosition(sf::Vector2f(100, 550));
     exit_button->SetText("Exit");
     exit_button->SetCallback([this]()
         {
@@ -54,6 +64,7 @@ MenuState::MenuState(StateStack& stack, Context context) : State(stack, context)
     m_gui_container.Pack(host_play_button);
     m_gui_container.Pack(join_play_button);
     m_gui_container.Pack(settings_button);
+    m_gui_container.Pack(selectcar_button);
     m_gui_container.Pack(exit_button);
 
     context.music->Play(MusicThemes::kMenuTheme);
