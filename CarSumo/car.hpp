@@ -17,6 +17,8 @@ public:
 	void UpdateTexts();
 
 	float GetMaxSpeed() const;
+	float GetTurnSpeed() const;
+	float GetMaxTurnSpeed() const;
 
 	sf::FloatRect GetBoundingRect() const override;
 	bool IsMarkedForRemoval() const override;

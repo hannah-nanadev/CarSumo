@@ -51,6 +51,10 @@ Car::Car(CarType type, const TextureHolder& textures, const FontHolder& fonts)
 	Utility::CentreOrigin(m_sprite);
 	Utility::CentreOrigin(m_explosion);
 
+	//offset rotation between sprite and entity so car moves correctly
+	setRotation(sf::degrees(-90.f));
+	m_sprite.setRotation(sf::degrees(90.f));
+
 	std::string* health = new std::string("");
 	std::unique_ptr<TextNode> health_display(new TextNode(fonts, *health));
 	m_health_display = health_display.get();
@@ -91,6 +95,16 @@ void Car::UpdateTexts()
 float Car::GetMaxSpeed() const
 {
 	return Table[static_cast<int>(m_type)].m_speed;
+}
+
+float Car::GetTurnSpeed() const
+{
+	return Table[static_cast<int>(m_type)].m_turnspeed;
+}
+
+float Car::GetMaxTurnSpeed() const
+{
+	return Table[static_cast<int>(m_type)].m_maxturnspeed;
 }
 
 sf::FloatRect Car::GetBoundingRect() const
@@ -143,6 +157,22 @@ void Car::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 		}
 		return;
 	}
+
+	//Turn velocity clamp because the friction doesn't work the way I'd like it to
+	float rotation_magnitude = std::abs(Entity::GetTurnSpeed().asDegrees());
+
+	if(rotation_magnitude > GetMaxTurnSpeed())
+	{
+		if (Entity::GetTurnSpeed().asDegrees() > 0)
+		{
+			Entity::SetTurnSpeed(sf::degrees(GetMaxTurnSpeed()));
+		}
+		else
+		{
+			Entity::SetTurnSpeed(sf::degrees(-GetMaxTurnSpeed()));
+		}
+	}
+
 	Entity::UpdateCurrent(dt, commands);
 	UpdateTexts();
 	std::cout << "Car " << +m_identifier << " Position: " << GetWorldPosition().x << ", " << GetWorldPosition().y << std::endl;

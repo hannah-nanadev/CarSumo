@@ -1,4 +1,4 @@
-#include "Entity.hpp"
+#include "entity.hpp"
 #include "command_queue.hpp"
 
 Entity::Entity(int hitpoints) :m_hitpoints(hitpoints)
@@ -19,6 +19,24 @@ void Entity::SetVelocity(float vx, float vy)
 sf::Vector2f Entity::GetVelocity() const
 {
 	return m_velocity;
+}
+
+void Entity::SetTurnSpeed(sf::Angle speed)
+{
+	m_rotation_speed = speed;
+}
+
+sf::Angle Entity::GetTurnSpeed() const
+{
+	return m_rotation_speed;
+}
+
+sf::Vector2f Entity::GetDirection() const
+{
+	sf::Angle angle = getRotation();
+	sf::Vector2f direction(std::cos(angle.asRadians()), std::sin(angle.asRadians()));
+	float magnitude = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+	return direction / magnitude; // Normalize the direction vector
 }
 
 void Entity::Accelerate(sf::Vector2f velocity)
@@ -72,6 +90,9 @@ bool Entity::IsDestroyed() const
 
 void Entity::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 {
+	m_velocity = m_velocity * (1.f - kMoveFriction * dt.asSeconds());
+	m_rotation_speed = m_rotation_speed * (1.f - kTurnFriction * dt.asSeconds());
+
 	move(m_velocity * dt.asSeconds());
 	rotate(m_rotation_speed * dt.asSeconds());
 }

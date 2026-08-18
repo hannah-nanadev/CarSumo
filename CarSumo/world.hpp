@@ -5,7 +5,6 @@
 #include "scene_layers.hpp"
 #include "car.hpp"
 #include "command_queue.hpp"
-#include "bloom_effect.hpp"
 #include "sound_player.hpp"
 #include "sprite_node.hpp"
 
@@ -68,8 +67,6 @@ private:
 	std::vector<Car*> m_player_car;
 
 	CommandQueue m_command_queue;
-
-	BloomEffect m_bloom_effect;
 	bool m_networked_world;
 	NetworkNode* m_network_node;
 	SpriteNode* m_finish_sprite;

@@ -52,19 +52,8 @@ void World::Update(sf::Time dt)
 
 void World::Draw()
 {
-	if (PostEffect::IsSupported())
-	{
-		m_scene_texture.clear();
-		m_scene_texture.setView(m_camera);
-		m_scene_texture.draw(m_scene_graph);
-		m_scene_texture.display();
-		m_bloom_effect.Apply(m_scene_texture, m_target);
-	}
-	else
-	{
-		m_target.setView(m_camera);
-		m_target.draw(m_scene_graph);
-	}
+	m_target.setView(m_camera);
+	m_target.draw(m_scene_graph);
 }
 
 Car* World::GetCar(int identifier) const
