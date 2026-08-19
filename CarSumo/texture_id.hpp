@@ -12,6 +12,7 @@ enum class TextureID
 	kButtonActivated,
 	kCars,
 	kButtons,
+	kCarSelectBG,
 	kExplosion,
 	kArena,
 	kParticle,

@@ -98,3 +98,35 @@ void gui::Button::ChangeTexture(ButtonType buttonType)
     sf::IntRect textureRect({ 0, 50 * static_cast<int>(buttonType) }, { 200, 50 });
     m_sprite.setTextureRect(textureRect);
 }
+
+gui::CarPanel::CarPanel(State::Context context, CarType car)
+    : m_context(context)
+    , m_background_sprite(context.textures->Get(TextureID::kCarSelectBG))
+    , m_car_sprite(context.textures->Get(static_cast<TextureID>(car)))
+    , m_car_type(car)
+{
+
+}
+
+State::Context gui::CarPanel::GetContext() const
+{
+    return m_context;
+}
+
+void gui::CarPanel::SetCar(CarType car)
+{
+    m_car_type = car;
+    m_car_sprite.setTexture(GetContext().textures->Get(static_cast<TextureID>(car)));
+}
+
+CarType gui::CarPanel::GetCar() const
+{
+    return m_car_type;
+}
+
+void gui::CarPanel::draw(sf::RenderTarget& target, sf::RenderStates states) const
+{
+    states.transform *= getTransform();
+    target.draw(m_background_sprite, states);
+    target.draw(m_car_sprite, states);
+}
