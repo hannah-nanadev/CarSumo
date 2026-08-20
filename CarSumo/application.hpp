@@ -34,5 +34,8 @@ private:
 
 	KeyBinding m_key_binding_1;
 	KeyBinding m_key_binding_2;
+
+	CarType m_p1_car;
+	CarType m_p2_car;
 };
 

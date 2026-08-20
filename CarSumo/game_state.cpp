@@ -1,8 +1,8 @@
 #include "game_state.hpp"
 
-GameState::GameState(StateStack& stack, Context context) : State(stack, context), m_world(*context.window, *context.fonts, *context.sound, false), m_player(nullptr, 1, context.keys1)
+GameState::GameState(StateStack& stack, Context context) : State(stack, context), m_world(*context.window, *context.fonts, *context.sound, false), m_player(nullptr, 1, context.keys1), m_player_car_type(*context.p1car)
 {
-	m_world.AddCar(1, CarType::kBasic);
+	m_world.AddCar(1, m_player_car_type);
 	context.music->Play(MusicThemes::kMissionTheme);
 }
 

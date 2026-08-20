@@ -30,6 +30,8 @@ private:
 
 	std::map<uint8_t, PlayerPtr> m_players;
 	std::vector<uint8_t> m_local_player_identifiers;
+	CarType m_player1_car_type;
+	CarType m_player2_car_type;
 	sf::TcpSocket m_socket;
 	bool m_connected;
 	std::unique_ptr<GameServer> m_game_server;

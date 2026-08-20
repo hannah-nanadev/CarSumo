@@ -6,10 +6,16 @@ SelectCarState::SelectCarState(StateStack& stack, Context context)
 	, m_gui_container()
 	, m_background_sprite(context.textures->Get(TextureID::kTitleScreen))
 {
-	//Build car selection buttons, panels and labels
+	//Build car selection buttons, panels and labels for player 1
 	for (std::size_t x = 0; x < static_cast<int>(CarType::kCarCount); ++x)
 	{
-		AddButtonLabel(x, x * 200 + 100, 300, CarTypeNames[x], static_cast<CarType>(x), context);
+		AddButtonLabel(x, x * 200 + 100, 300, CarTypeNames[x], static_cast<CarType>(x), 0, context);
+	}
+	UpdateLabels();
+	//Same for player 2
+	for (std::size_t x = 0; x < static_cast<int>(CarType::kCarCount); ++x)
+	{
+		AddButtonLabel(x, x * 200 + 100, 550, CarTypeNames[x], static_cast<CarType>(x), 1, context);
 	}
 	UpdateLabels();
 
@@ -34,6 +40,8 @@ bool SelectCarState::Update(sf::Time dt)
 
 bool SelectCarState::HandleEvent(const sf::Event& event)
 {
+	//Logic for selecting cars for player 1 and player 2
+
 	m_gui_container.HandleEvent(event);
 	return false;
 }
@@ -46,16 +54,24 @@ void SelectCarState::UpdateLabels()
 	}
 }
 
-void SelectCarState::AddButtonLabel(std::size_t index, std::size_t x, std::size_t y, const std::string& text, CarType car, Context context)
+void SelectCarState::AddButtonLabel(std::size_t index, std::size_t x, std::size_t y, const std::string& text, CarType car, int player, Context context)
 {
 	auto button = std::make_shared<gui::Button>(context);
 	auto car_panel = std::make_shared<gui::CarPanel>(context, car);
 	car_panel->setPosition(sf::Vector2f(x, y - 200));
 	button->setPosition(sf::Vector2f(x, y));
 	button->SetText(text);
-	button->SetCallback([this, index]()
+	button->SetCallback([this, car, player]()
 		{
-			UpdateLabels();
+			std::cout << "Player " << player + 1 << " selected car: " << CarTypeNames[static_cast<int>(car)] << std::endl;
+			if(player == 0)
+			{
+				*GetContext().p1car = car;
+			}
+			else
+			{
+				*GetContext().p2car = car;
+			}
 		});
 	m_gui_container.Pack(button);
 	m_gui_container.Pack(car_panel);

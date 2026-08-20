@@ -6,6 +6,7 @@
 #include "stateid.hpp"
 #include "music_player.hpp"
 #include "sound_player.hpp"
+#include "car_type.hpp"
 
 
 class StateStack;
@@ -18,7 +19,7 @@ public:
 
 	struct Context
 	{
-		Context(sf::RenderWindow& window, TextureHolder& textures, FontHolder& fonts, MusicPlayer& music, SoundPlayer& sound, KeyBinding& keys1, KeyBinding& keys2);
+		Context(sf::RenderWindow& window, TextureHolder& textures, FontHolder& fonts, MusicPlayer& music, SoundPlayer& sound, KeyBinding& keys1, KeyBinding& keys2, CarType& p1car, CarType& p2car);
 		//TODO unique_ptr rather than raw pointers here?
 		sf::RenderWindow* window;
 		TextureHolder* textures;
@@ -27,6 +28,8 @@ public:
 		SoundPlayer* sound;
 		KeyBinding* keys1;
 		KeyBinding* keys2;
+		CarType* p1car;
+		CarType* p2car;
 	};
 
 public:
@@ -37,6 +40,7 @@ public:
 	virtual bool HandleEvent(const sf::Event& event) = 0;
 	virtual void OnActivate();
 	virtual void OnDestroy();
+	void SetCar(CarType car, int player_number);
 
 protected:
 	void RequestStackPush(StateID state_id);

@@ -14,7 +14,9 @@ Application::Application()
 	: m_window(sf::VideoMode({ 1024, 768 }), "States", sf::Style::Close)
 	, m_key_binding_1(1)
 	, m_key_binding_2(2)
-	, m_stack(State::Context(m_window, m_textures, m_fonts, m_music, m_sound, m_key_binding_1, m_key_binding_2))
+	, m_p1_car(CarType::kBasic)
+	, m_p2_car(CarType::kBasic)
+	, m_stack(State::Context(m_window, m_textures, m_fonts, m_music, m_sound, m_key_binding_1, m_key_binding_2, m_p1_car, m_p2_car))
 {
 	m_window.setKeyRepeatEnabled(false);
 	m_fonts.Load(FontID::kMain, "Media/Fonts/Sansation.ttf");

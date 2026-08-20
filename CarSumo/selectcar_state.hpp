@@ -16,7 +16,7 @@ public:
 
 private:
 	void UpdateLabels();
-	void AddButtonLabel(std::size_t index, std::size_t x, std::size_t y, const std::string& text, CarType car, Context context);
+	void AddButtonLabel(std::size_t index, std::size_t x, std::size_t y, const std::string& text, CarType car, int player, Context context);
 
 private:
 	sf::Sprite m_background_sprite;

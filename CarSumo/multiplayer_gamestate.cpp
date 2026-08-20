@@ -42,6 +42,8 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	, m_has_focus(true)
 	, m_host(is_host)
 	, m_game_started(false)
+	, m_player1_car_type(*context.p1car)
+	, m_player2_car_type(*context.p2car)
 	, m_client_timeout(sf::seconds(1.f))
 	, m_time_since_last_packet(sf::seconds(0.f))
 	, m_broadcast_text(context.fonts->Get(FontID::kMain))
@@ -324,7 +326,12 @@ void MultiplayerGameState::DisableAllRealtimeActions(bool enable)
 	m_active_state = enable;
 	for (uint8_t identifier : m_local_player_identifiers)
 	{
-		m_players[identifier]->DisableAllRealtimeActions(enable);
+		//Using this instead of m_players[identifier] since a player may be dead, causing a crash if access is attempted
+		auto it = m_players.find(identifier);
+		if (it != m_players.end() && it->second)
+		{
+			it->second->DisableAllRealtimeActions(enable);
+		}
 	}
 }
 
@@ -380,7 +387,7 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		sf::Vector2f car_position;
 		packet >> car_identifier >> car_position.x >> car_position.y;
 		std::cout << "Client kSpawnSelf" << +car_identifier << std::endl;
-		Car* car = m_world.AddCar(car_identifier, CarType::kBasic);
+		Car* car = m_world.AddCar(car_identifier, m_player1_car_type);
 		car->setPosition(car_position);
 		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, GetContext().keys1));
 		m_local_player_identifiers.push_back(car_identifier);
@@ -394,7 +401,7 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		sf::Vector2f car_position;
 		packet >> car_identifier >> car_position.x >> car_position.y;
 
-		Car* car = m_world.AddCar(car_identifier, CarType::kBasic);
+		Car* car = m_world.AddCar(car_identifier, m_player2_car_type);
 		car->setPosition(car_position);
 		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));
 	}
@@ -422,7 +429,7 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 			sf::Vector2f car_position;
 			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> missile_ammo;
 
-			Car* car = m_world.AddCar(car_identifier, CarType::kBasic);
+			Car* car = m_world.AddCar(car_identifier, m_player1_car_type);
 			car->setPosition(car_position);
 			car->SetHitpoints(hitpoints);
 
@@ -436,7 +443,7 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		uint8_t car_identifier;
 		packet >> car_identifier;
 
-		m_world.AddCar(car_identifier, CarType::kBasic);
+		m_world.AddCar(car_identifier, m_player2_car_type);
 		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, GetContext().keys2));
 		m_local_player_identifiers.emplace_back(car_identifier);
 	}

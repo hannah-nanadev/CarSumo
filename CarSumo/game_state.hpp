@@ -13,5 +13,6 @@ public:
 private:
 	World m_world;
 	Player m_player;
+	CarType m_player_car_type;
 };
 
