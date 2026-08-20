@@ -3,6 +3,7 @@
 #include "utility.hpp"
 #include "SFML/Graphics/Rect.hpp"
 #include "texture_id.hpp"
+#include "data_tables.hpp"
 
 gui::Button::Button(State::Context context)
     : m_sprite(context.textures->Get(TextureID::kButtons))
@@ -102,10 +103,10 @@ void gui::Button::ChangeTexture(ButtonType buttonType)
 gui::CarPanel::CarPanel(State::Context context, CarType car)
     : m_context(context)
     , m_background_sprite(context.textures->Get(TextureID::kCarSelectBG))
-    , m_car_sprite(context.textures->Get(static_cast<TextureID>(car)))
+    , m_car_sprite(context.textures->Get(TextureID::kCars))
     , m_car_type(car)
 {
-
+	SetCarTexture();
 }
 
 State::Context gui::CarPanel::GetContext() const
@@ -113,15 +114,34 @@ State::Context gui::CarPanel::GetContext() const
     return m_context;
 }
 
-void gui::CarPanel::SetCar(CarType car)
+void gui::CarPanel::SetCarTexture()
 {
-    m_car_type = car;
-    m_car_sprite.setTexture(GetContext().textures->Get(static_cast<TextureID>(car)));
+    m_car_sprite.setTextureRect(GetCarTextureRect(m_car_type));
+    
+    sf::FloatRect bg_bounds = m_background_sprite.getLocalBounds();
+    sf::FloatRect car_bounds = m_car_sprite.getLocalBounds();
+
+    float car_x = (bg_bounds.size.x - car_bounds.size.x) / 2.f;
+    float car_y = (bg_bounds.size.y - car_bounds.size.y) / 2.f;
+
+	sf::Vector2f car_position(car_x, car_y);
+
+    m_car_sprite.setPosition(car_position);
 }
 
 CarType gui::CarPanel::GetCar() const
 {
     return m_car_type;
+}
+
+bool gui::CarPanel::IsSelectable() const
+{
+    return false;
+}
+
+void gui::CarPanel::HandleEvent(const sf::Event& event)
+{
+    //CarPanel does not recieve events, this method only exists to appease the compiler
 }
 
 void gui::CarPanel::draw(sf::RenderTarget& target, sf::RenderStates states) const

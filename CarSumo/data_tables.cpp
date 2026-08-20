@@ -51,3 +51,8 @@ std::vector<ParticleData> InitializeParticleData()
 	data[static_cast<int>(ParticleType::kSmoke)].m_lifetime = sf::seconds(2.5f);
 	return data;
 }
+
+sf::IntRect GetCarTextureRect(CarType type)
+{
+	return InitializeCarData()[static_cast<int>(type)].m_texture_rect;
+}

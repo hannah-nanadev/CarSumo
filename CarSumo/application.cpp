@@ -20,6 +20,7 @@ Application::Application()
 	m_fonts.Load(FontID::kMain, "Media/Fonts/Sansation.ttf");
 	m_textures.Load(TextureID::kTitleScreen, "Media/Textures/TitleScreen.png");
 	m_textures.Load(TextureID::kCarSelectBG, "Media/Textures/coolbgforthecars.png");
+	m_textures.Load(TextureID::kCars, "Media/Textures/carscombined.png");
 	m_textures.Load(TextureID::kButtons, "Media/Textures/Buttons.png");
 
 	RegisterStates();

@@ -49,7 +49,7 @@ struct ParticleData
 std::vector<CarData> InitializeCarData();
 std::vector<ParticleData> InitializeParticleData();
 
-
+sf::IntRect GetCarTextureRect(CarType type);
 
 
 

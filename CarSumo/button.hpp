@@ -46,8 +46,11 @@ namespace gui
 	public:
 		CarPanel(State::Context context, CarType car);
 		State::Context GetContext() const;
-		void SetCar(CarType car);
+		void SetCarTexture();
 		CarType GetCar() const;
+
+		virtual bool IsSelectable() const override;
+		virtual void HandleEvent(const sf::Event& event) override;
 
 	private:
 		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
