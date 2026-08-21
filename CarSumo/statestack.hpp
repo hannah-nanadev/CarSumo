@@ -15,6 +15,8 @@ public:
 	void RegisterState(StateID state_id);
 	template <typename T, typename Param1>
 	void RegisterState(StateID state_id, Param1 arg1);
+	template <typename T, typename Param1, typename Param2>
+	void RegisterState(StateID state_id, Param1 arg1, Param2 arg2);
 	void Update(sf::Time dt);
 	void Draw();
 	void HandleEvent(const sf::Event& event);
@@ -59,6 +61,15 @@ void StateStack::RegisterState(StateID state_id, Param1 arg1)
 	m_state_factory[state_id] = [this, arg1]()
 		{
 			return State::Ptr(new T(*this, m_context, arg1));
+		};
+}
+
+template <typename T, typename Param1, typename Param2>
+void StateStack::RegisterState(StateID state_id, Param1 arg1, Param2 arg2)
+{
+	m_state_factory[state_id] = [this, arg1, arg2]()
+		{
+			return State::Ptr(new T(*this, m_context, arg1, arg2));
 		};
 }
 

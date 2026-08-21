@@ -9,7 +9,7 @@
 class SelectCarState : public State
 {
 public:
-	SelectCarState(StateStack& stack, Context context);
+	SelectCarState(StateStack& stack, Context context, int playercount, StateID nextState);
 	virtual void Draw() override;
 	virtual bool Update(sf::Time dt) override;
 	virtual bool HandleEvent(const sf::Event& event) override;
@@ -23,4 +23,6 @@ private:
 	gui::Container m_gui_container;
 	std::array<gui::Button::Ptr, static_cast<int>(CarType::kCarCount)> m_car_buttons;
 	std::array<gui::Label::Ptr, static_cast<int>(CarType::kCarCount)> m_car_labels;
+	StateID m_next_state;
+	int m_playercount;
 };

@@ -9,11 +9,10 @@ MenuState::MenuState(StateStack& stack, Context context) : State(stack, context)
 {
     auto play_button = std::make_shared<gui::Button>(context);
     play_button->setPosition(sf::Vector2f(100, 300));
-    play_button->SetText("Play");
+    play_button->SetText("Test Drive");
     play_button->SetCallback([this]()
         {
-            RequestStackPop();
-            RequestStackPush(StateID::kGame);
+            RequestStackPush(StateID::kCarSelectSolo);
         });
 
     auto host_play_button = std::make_shared<gui::Button>(context);
@@ -21,8 +20,7 @@ MenuState::MenuState(StateStack& stack, Context context) : State(stack, context)
     host_play_button->SetText("Host");
     host_play_button->SetCallback([this]()
         {
-            RequestStackPop();
-            RequestStackPush(StateID::kHostGame);
+            RequestStackPush(StateID::kCarSelectHost);
         });
 
     auto join_play_button = std::make_shared<gui::Button>(context);
@@ -30,8 +28,7 @@ MenuState::MenuState(StateStack& stack, Context context) : State(stack, context)
     join_play_button->SetText("Join");
     join_play_button->SetCallback([this]()
         {
-            RequestStackPop();
-            RequestStackPush(StateID::kJoinGame);
+            RequestStackPush(StateID::kCarSelectJoin);
         });
 
     auto settings_button = std::make_shared<gui::Button>(context);
@@ -40,16 +37,6 @@ MenuState::MenuState(StateStack& stack, Context context) : State(stack, context)
     settings_button->SetCallback([this]()
         {
             RequestStackPush(StateID::kSettings);
-        });
-
-    //Temp to test the select car state
-
-    auto selectcar_button = std::make_shared<gui::Button>(context);
-    selectcar_button->setPosition(sf::Vector2f(100, 500));
-    selectcar_button->SetText("Select Car");
-    selectcar_button->SetCallback([this]()
-        {
-            RequestStackPush(StateID::kCarSelect);
         });
 
     auto exit_button = std::make_shared<gui::Button>(context);
@@ -64,7 +51,6 @@ MenuState::MenuState(StateStack& stack, Context context) : State(stack, context)
     m_gui_container.Pack(host_play_button);
     m_gui_container.Pack(join_play_button);
     m_gui_container.Pack(settings_button);
-    m_gui_container.Pack(selectcar_button);
     m_gui_container.Pack(exit_button);
 
     context.music->Play(MusicThemes::kMenuTheme);
