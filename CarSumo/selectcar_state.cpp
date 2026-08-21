@@ -35,7 +35,7 @@ SelectCarState::SelectCarState(StateStack& stack, Context context, int playercou
 	start_button->SetText("Start");
 	start_button->SetCallback([this]()
 		{
-			RequestStackPop();
+			RequestStackClear();
 			RequestStackPush(m_next_state);
 		}
 	);

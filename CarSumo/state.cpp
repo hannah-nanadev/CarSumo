@@ -15,16 +15,19 @@ State::Context::Context(sf::RenderWindow& window, TextureHolder& textures, FontH
 
 void State::RequestStackPush(StateID state_id)
 {
+	std::cout << "RequestStackPush: " << StateIDNames[static_cast<int>(state_id)] << std::endl;
 	m_stack->PushState(state_id);
 }
 
 void State::RequestStackPop()
 {
+	std::cout << "RequestStackPop" << std::endl;
 	m_stack->PopState();
 }
 
 void State::RequestStackClear()
 {
+	std::cout << "RequestStackClear" << std::endl;
 	m_stack->ClearStack();
 }
 

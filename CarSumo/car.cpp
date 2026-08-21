@@ -175,7 +175,6 @@ void Car::UpdateCurrent(sf::Time dt, CommandQueue& commands)
 
 	Entity::UpdateCurrent(dt, commands);
 	UpdateTexts();
-	std::cout << "Car " << +m_identifier << " Position: " << GetWorldPosition().x << ", " << GetWorldPosition().y << std::endl;
 }
 
 void Car::Remove()

@@ -17,3 +17,21 @@ enum class StateID
 	kHostGame,
 	kJoinGame
 };
+
+static const char* StateIDNames[] = {
+	"None",
+	"Title",
+	"Menu",
+	"CarSelectSolo",
+	"CarSelectHost",
+	"CarSelectJoin",
+	"Game",
+	"Pause",
+	"NetworkPause",
+	"Settings",
+	"P1Win",
+	"P2Win",
+	"Draw",
+	"HostGame",
+	"JoinGame"
+};
