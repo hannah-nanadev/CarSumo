@@ -1,10 +1,9 @@
 #include "game_server.hpp"
 #include "network_protocol.hpp"
-#include "aircraft_type.hpp"
+#include "car_type.hpp"
 #include "utility.hpp"
 #include <SFML/Network/Packet.hpp>
 #include <SFML/System/Sleep.hpp>
-#include "pickup_type.hpp"
 #include <iostream>
 
 GameServer::GameServer(sf::Vector2f battlefield_size)
@@ -15,13 +14,10 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
     , m_connected_players(0)
     , m_world_height(5000.f)
     , m_battlefield_rect(sf::Vector2f(0.f, m_world_height - battlefield_size.y),sf::Vector2f(battlefield_size.x, battlefield_size.y))
-    , m_battlefield_scrollspeed(-50.f)
-    , m_aircraft_count(0)
+    , m_car_count(0)
     , m_peers(1)
-    , m_aircraft_identifier_counter(1)
+    , m_car_identifier_counter(1)
     , m_waiting_thread_end(false)
-    , m_last_spawn_time(sf::Time::Zero)
-    , m_time_for_next_spawn(sf::seconds(5.f))
 {
     m_listener_socket.setBlocking(false);
     m_peers[0].reset(new RemotePeer);
@@ -33,34 +29,34 @@ GameServer::~GameServer()
     m_thread.join();
 }
 
-void GameServer::NotifyPlayerSpawn(uint8_t aircraft_identifier)
+void GameServer::NotifyPlayerSpawn(uint8_t car_identifier)
 {
     sf::Packet packet;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerConnect);
-    packet << aircraft_identifier << m_aircraft_info[aircraft_identifier].m_position.x << m_aircraft_info[aircraft_identifier].m_position.y;
+    packet << car_identifier << m_car_info[car_identifier].m_position.x << m_car_info[car_identifier].m_position.y;
     SendToAll(packet);
 }
 
-void GameServer::NotifyPlayerRealtimeChange(uint8_t aircraft_identifier, uint8_t action, bool action_enabled)
+void GameServer::NotifyPlayerRealtimeChange(uint8_t car_identifier, uint8_t action, bool action_enabled)
 {
     sf::Packet packet;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerRealtimeChange);
-    packet << aircraft_identifier;
+    packet << car_identifier;
     packet << action;
     packet << action_enabled;
     SendToAll(packet);
 
 }
 
-void GameServer::NotifyPlayerEvent(uint8_t aircraft_identifier, uint8_t action)
+void GameServer::NotifyPlayerEvent(uint8_t car_identifier, uint8_t action)
 {
     sf::Packet packet;
-    std::cout << "Server: Notify Player Event" << +aircraft_identifier << +action << std::endl;
+    std::cout << "Server: Notify Player Event" << +car_identifier << +action << std::endl;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerEvent);
-    packet << aircraft_identifier;
+    packet << car_identifier;
     packet << action;
     SendToAll(packet);
 }
@@ -107,7 +103,6 @@ void GameServer::ExecutionThread()
         //Fixed time step
         while (frame_time >= frame_rate)
         {
-            m_battlefield_rect.position.y += m_battlefield_scrollspeed * frame_rate.asSeconds();
             frame_time -= frame_rate;
         }
 
@@ -127,71 +122,34 @@ void GameServer::Tick()
 {
     UpdateClientState();
 
-    //Check if the game is over = all planes position.y < offset
-    bool all_aircraft_done = true;
-    for (const auto& current : m_aircraft_info)
+    //Check if the game is over = all cars position.y < offset
+    bool all_car_done = true;
+    for (const auto& current : m_car_info)
     {
         //As long as one player has not crossed the finish line the game is live
         if (current.second.m_position.y > 0.f)
         {
-            all_aircraft_done = false;
+            all_car_done = false;
             break;
         }
     }
-    if (all_aircraft_done)
+    if (all_car_done)
     {
         sf::Packet mission_success_packet;
         mission_success_packet << static_cast<uint8_t>(Server::PacketType::kMissionSuccess);
         SendToAll(mission_success_packet);
     }
 
-    //Remove aircraft that have been destroyed
-    for (auto itr = m_aircraft_info.begin(); itr != m_aircraft_info.end();)
+    //Remove car that have been destroyed
+    for (auto itr = m_car_info.begin(); itr != m_car_info.end();)
     {
         if (itr->second.m_hitpoints <= 0)
         {
-            m_aircraft_info.erase(itr++);
+            m_car_info.erase(itr++);
         }
         else
         {
             ++itr;
-        }
-    }
-
-    //Check if it is time to spawn enemies
-    if (Now() >= m_time_for_next_spawn + m_last_spawn_time)
-    {
-        //Not going to spawn any enemies towards the end of the level
-        if (m_battlefield_rect.position.y > 600.f)
-        {
-            std::size_t enemy_count = 1 + Utility::RandomInt(2);
-            float spawn_centre = static_cast<float>(Utility::RandomInt(500) - 250);
-
-            //If there is only one enemy it will spawn in centre
-            float plane_distance = 0.f;
-            float next_spawn_position = spawn_centre;
-
-            //If there are two enemies they are centred on the spawncentre
-            if (enemy_count == 2)
-            {
-                plane_distance = static_cast<float>(150 + Utility::RandomInt(250));
-                next_spawn_position = spawn_centre - plane_distance / 2.f;
-            }
-
-            //Send the spawn packets to the clients
-            for (std::size_t i = 0; i < enemy_count; ++i)
-            {
-                sf::Packet packet;
-                packet << static_cast<uint8_t>(Server::PacketType::kSpawnEnemy);
-                packet << static_cast<uint8_t>(1 + Utility::RandomInt(static_cast<int>(AircraftType::kAircraftCount) - 1));
-                packet << m_world_height - m_battlefield_rect.position.y + 500;
-                packet << next_spawn_position;
-
-                next_spawn_position += plane_distance / 2.f;
-                SendToAll(packet);
-            }
-            m_last_spawn_time = Now();
-            m_time_for_next_spawn = sf::milliseconds(2000 + Utility::RandomInt(4000));
         }
     }
 }
@@ -249,45 +207,44 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
 
     case Client::PacketType::kPlayerEvent:
     {
-        uint8_t aircraft_identifier;
+        uint8_t car_identifier;
         uint8_t action;
-        packet >> aircraft_identifier >> action;
-        NotifyPlayerEvent(aircraft_identifier, action);
+        packet >> car_identifier >> action;
+        NotifyPlayerEvent(car_identifier, action);
     }
     break;
 
     case Client::PacketType::kPlayerRealtimeChange:
     {
-        uint8_t aircraft_identifier;
+        uint8_t car_identifier;
         uint8_t action;
         bool action_enabled;
-        packet >> aircraft_identifier >> action >> action_enabled;
-        NotifyPlayerRealtimeChange(aircraft_identifier, action, action_enabled);
+        packet >> car_identifier >> action >> action_enabled;
+        NotifyPlayerRealtimeChange(car_identifier, action, action_enabled);
     }
     break;
 
     case Client::PacketType::kRequestCoopPartner:
     {
-        receiving_peer.m_aircraft_identifiers.emplace_back(m_aircraft_identifier_counter);
-        m_aircraft_info[m_aircraft_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.size.x / 2, m_battlefield_rect.position.y + m_battlefield_rect.size.y / 2);
-        m_aircraft_info[m_aircraft_identifier_counter].m_hitpoints = 100;
-        m_aircraft_info[m_aircraft_identifier_counter].m_missile_ammo = 2;
+        receiving_peer.m_car_identifiers.emplace_back(m_car_identifier_counter);
+        m_car_info[m_car_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.size.x / 2, m_battlefield_rect.position.y + m_battlefield_rect.size.y / 2);
+        m_car_info[m_car_identifier_counter].m_hitpoints = 100;
 
         sf::Packet request_packet;
         request_packet << static_cast<uint8_t>(Server::PacketType::kAcceptCoopPartner);
-        request_packet << m_aircraft_identifier_counter;
-        request_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.x;
-        request_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.y;
+        request_packet << m_car_identifier_counter;
+        request_packet << m_car_info[m_car_identifier_counter].m_position.x;
+        request_packet << m_car_info[m_car_identifier_counter].m_position.y;
 
         receiving_peer.m_socket.send(request_packet);
-        m_aircraft_count++;
+        m_car_count++;
 
-        // Tell everyone else about the new plane
+        // Tell everyone else about the new car
         sf::Packet notify_packet;
         notify_packet << static_cast<uint8_t>(Server::PacketType::kPlayerConnect);
-        notify_packet << m_aircraft_identifier_counter;
-        notify_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.x;
-        notify_packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.y;
+        notify_packet << m_car_identifier_counter;
+        notify_packet << m_car_info[m_car_identifier_counter].m_position.x;
+        notify_packet << m_car_info[m_car_identifier_counter].m_position.y;
 
         for (PeerPtr& peer : m_peers)
         {
@@ -296,25 +253,23 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
                 peer->m_socket.send(notify_packet);
             }
         }
-        m_aircraft_identifier_counter++;
+        m_car_identifier_counter++;
     }
     break;
 
     case Client::PacketType::kStateUpdate:
     {
-        uint8_t num_aircraft;
-        packet >> num_aircraft;
+        uint8_t num_car;
+        packet >> num_car;
 
-        for (uint8_t i = 0; i < num_aircraft; ++i)
+        for (uint8_t i = 0; i < num_car; ++i)
         {
-            uint8_t aircraft_identifier;
-            uint8_t aircraft_hitpoints;
-            uint8_t missile_ammo;
-            sf::Vector2f aircraft_position;
-            packet >> aircraft_identifier >> aircraft_position.x >> aircraft_position.y >> aircraft_hitpoints >> missile_ammo;
-            m_aircraft_info[aircraft_identifier].m_position = aircraft_position;
-            m_aircraft_info[aircraft_identifier].m_hitpoints = aircraft_hitpoints;
-            m_aircraft_info[aircraft_identifier].m_missile_ammo = missile_ammo;
+            uint8_t car_identifier;
+            uint8_t car_hitpoints;
+            sf::Vector2f car_position;
+            packet >> car_identifier >> car_position.x >> car_position.y >> car_hitpoints;
+            m_car_info[car_identifier].m_position = car_position;
+            m_car_info[car_identifier].m_hitpoints = car_hitpoints;
         }
     }
     break;
@@ -327,19 +282,6 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
         packet >> action;
         packet >> x;
         packet >> y;
-
-        //Enemy explodes, with a certain probability, drop a pickup
-        //To avoid multiple messages only listen to the first peer (host)
-        if (action == GameActions::kEnemyExplode && Utility::RandomInt(3) == 0 && &receiving_peer == m_peers[0].get())
-        {
-            sf::Packet packet;
-            packet << static_cast<uint8_t>(Server::PacketType::kSpawnPickup);
-            packet << static_cast<uint8_t>(Utility::RandomInt(static_cast<int>(PickupType::kPickupCount)));
-            packet << x;
-            packet << y;
-
-            SendToAll(packet);
-        }
     }
     }
 }
@@ -354,27 +296,26 @@ void GameServer::HandleIncomingConnections()
     if (m_listener_socket.accept(m_peers[m_connected_players]->m_socket) == sf::TcpListener::Status::Done)
     {
         //Order the new client to spawn its player 1
-        m_aircraft_info[m_aircraft_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.size.x / 2, m_battlefield_rect.position.y + m_battlefield_rect.size.y / 2);
-        m_aircraft_info[m_aircraft_identifier_counter].m_hitpoints = 100;
-        m_aircraft_info[m_aircraft_identifier_counter].m_missile_ammo = 2;
+        m_car_info[m_car_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.size.x / 2, m_battlefield_rect.position.y + m_battlefield_rect.size.y / 2);
+        m_car_info[m_car_identifier_counter].m_hitpoints = 100;
 
         sf::Packet packet;
         packet << static_cast<uint8_t>(Server::PacketType::kSpawnSelf);
-        packet << m_aircraft_identifier_counter;
-        packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.x;
-        packet << m_aircraft_info[m_aircraft_identifier_counter].m_position.y;
+        packet << m_car_identifier_counter;
+        packet << m_car_info[m_car_identifier_counter].m_position.x;
+        packet << m_car_info[m_car_identifier_counter].m_position.y;
 
-        m_peers[m_connected_players]->m_aircraft_identifiers.emplace_back(m_aircraft_identifier_counter);
+        m_peers[m_connected_players]->m_car_identifiers.emplace_back(m_car_identifier_counter);
 
         BroadcastMessage("New player");
         InformWorldState(m_peers[m_connected_players]->m_socket);
-        NotifyPlayerSpawn(m_aircraft_identifier_counter++);
+        NotifyPlayerSpawn(m_car_identifier_counter++);
 
         m_peers[m_connected_players]->m_socket.send(packet);
         m_peers[m_connected_players]->m_ready = true;
         m_peers[m_connected_players]->m_last_packet_time = Now();
 
-        m_aircraft_count++;
+        m_car_count++;
         m_connected_players++;
 
         if (m_connected_players >= m_max_connected_players)
@@ -395,14 +336,14 @@ void GameServer::HandleDisconnections()
         if ((*itr)->m_timed_out)
         {
             //Inform everyone of a disconnection, erase
-            for (uint8_t identifer : (*itr)->m_aircraft_identifiers)
+            for (uint8_t identifer : (*itr)->m_car_identifiers)
             {
                 SendToAll((sf::Packet() << static_cast<uint8_t>(Server::PacketType::kPlayerDisconnect) << identifer));
-                m_aircraft_info.erase(identifer);
+                m_car_info.erase(identifer);
             }
 
             m_connected_players--;
-            m_aircraft_count -= (*itr)->m_aircraft_identifiers.size();
+            m_car_count -= (*itr)->m_car_identifiers.size();
 
             itr = m_peers.erase(itr);
 
@@ -428,15 +369,15 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
     sf::Packet packet;
     packet << static_cast<uint8_t>(Server::PacketType::kInitialState);
     packet << m_world_height << m_battlefield_rect.position.y + m_battlefield_rect.size.y;
-    packet << static_cast<uint8_t>(m_aircraft_count);
+    packet << static_cast<uint8_t>(m_car_count);
 
     for (std::size_t i = 0; i < m_connected_players; ++i)
     {
         if (m_peers[i]->m_ready)
         {
-            for (uint8_t identifier : m_peers[i]->m_aircraft_identifiers)
+            for (uint8_t identifier : m_peers[i]->m_car_identifiers)
             {
-                packet << identifier << m_aircraft_info[identifier].m_position.x << m_aircraft_info[identifier].m_position.y << m_aircraft_info[identifier].m_hitpoints << m_aircraft_info[identifier].m_missile_ammo;
+                packet << identifier << m_car_info[identifier].m_position.x << m_car_info[identifier].m_position.y << m_car_info[identifier].m_hitpoints;
             }
         }
     }
@@ -474,11 +415,11 @@ void GameServer::UpdateClientState()
     sf::Packet update_client_state_packet;
     update_client_state_packet << static_cast<uint8_t>(Server::PacketType::kUpdateClientState);
     update_client_state_packet << static_cast<float>(m_battlefield_rect.position.y + m_battlefield_rect.size.y);
-    update_client_state_packet << static_cast<uint8_t>(m_aircraft_count);
+    update_client_state_packet << static_cast<uint8_t>(m_car_count);
 
-    for (const auto& aircraft : m_aircraft_info)
+    for (const auto& car : m_car_info)
     {
-        update_client_state_packet << aircraft.first << aircraft.second.m_position.x << aircraft.second.m_position.y << aircraft.second.m_hitpoints << aircraft.second.m_missile_ammo;
+        update_client_state_packet << car.first << car.second.m_position.x << car.second.m_position.y << car.second.m_hitpoints;
     }
 
     SendToAll(update_client_state_packet);

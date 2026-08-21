@@ -12,8 +12,6 @@ namespace Server
 		kPlayerConnect, //The same as SpawnSelf but indicates that an aircraft from a different client is connecting
 		kPlayerDisconnect, //Takes sf::Int32 aircraft identifier that is disconnecting
 		kAcceptCoopPartner, //This says we are free to spawn another local plane. It takes sf::Int32 and two float values with the id of the hot seat multiplayer and its position
-		kSpawnEnemy, //Takes one sf::Int32 with the type of Aircraft defined in AircraftType.hpp and two floats as to where to spawn the enemy
-		kSpawnPickup, //Similar to kSpawnEnemy. sf::Int32 for pickup type in PickupType.hpp and two floats for position
 		kSpawnSelf, //This takes an sf::Int32 for the aircraft identifier and two float values for the initial position. 
 		kUpdateClientState, //This takes one float with the current scrolling of the world in the server, and then a sf::Int32 for the number of aircraft. For each aircraft, it packs one sf::Int32 value with the identifier, two floats for position, health, and ammo. Think about enemies. If we don't send anything they will be locally tracked
 		kMissionSuccess // This has no arguments. It just informs the client that the game is over and the client can show the appropriate state

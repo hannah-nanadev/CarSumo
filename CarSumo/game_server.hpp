@@ -13,9 +13,9 @@ class GameServer
 public:
 	explicit GameServer(sf::Vector2f battlefield_size);
 	~GameServer();
-	void NotifyPlayerSpawn(uint8_t aircraft_identifier);
-	void NotifyPlayerRealtimeChange(uint8_t aircraft_identifier, uint8_t action, bool action_enabled);
-	void NotifyPlayerEvent(uint8_t aircraft_identifier, uint8_t action);
+	void NotifyPlayerSpawn(uint8_t car_identifier);
+	void NotifyPlayerRealtimeChange(uint8_t car_identifier, uint8_t action, bool action_enabled);
+	void NotifyPlayerEvent(uint8_t car_identifier, uint8_t action);
 
 private:
 	struct RemotePeer
@@ -23,16 +23,15 @@ private:
 		RemotePeer();
 		sf::TcpSocket m_socket;
 		sf::Time m_last_packet_time;
-		std::vector<uint8_t> m_aircraft_identifiers;
+		std::vector<uint8_t> m_car_identifiers;
 		bool m_ready;
 		bool m_timed_out;
 	};
 
-	struct AircraftInfo
+	struct CarInfo
 	{
 		sf::Vector2f m_position;
 		uint8_t m_hitpoints;
-		uint8_t m_missile_ammo;
 		std::map<uint8_t, bool> m_real_time_actions;
 	};
 
@@ -67,16 +66,12 @@ private:
 
 	float m_world_height;
 	sf::FloatRect m_battlefield_rect;
-	float m_battlefield_scrollspeed;
 
-	std::size_t m_aircraft_count;
-	std::map<uint8_t, AircraftInfo> m_aircraft_info;
+	std::size_t m_car_count;
+	std::map<uint8_t, CarInfo> m_car_info;
 
 	std::vector<PeerPtr> m_peers;
-	uint8_t m_aircraft_identifier_counter;
+	uint8_t m_car_identifier_counter;
 	bool m_waiting_thread_end;
-
-	sf::Time m_last_spawn_time;
-	sf::Time m_time_for_next_spawn;
 };
 

@@ -11,7 +11,7 @@
 #include "multiplayer_gamestate.hpp"
 
 Application::Application() 
-	: m_window(sf::VideoMode({ 1024, 768 }), "States", sf::Style::Close)
+	: m_window(sf::VideoMode({ 1024, 768 }), "Car Sumo", sf::Style::Close)
 	, m_key_binding_1(1)
 	, m_key_binding_2(2)
 	, m_p1_car(CarType::kBasic)
