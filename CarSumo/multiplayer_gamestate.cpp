@@ -508,8 +508,7 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 			sf::Vector2f car_position;
 			uint8_t car_identifier;
 			uint8_t hitpoints;
-			uint8_t ammo;
-			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> ammo;
+			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints;
 
 			Car* car = m_world.GetCar(car_identifier);
 			bool is_local_car = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), car_identifier) != m_local_player_identifiers.end();

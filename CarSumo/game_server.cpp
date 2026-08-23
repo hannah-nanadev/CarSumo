@@ -331,6 +331,8 @@ void GameServer::HandleIncomingConnections()
         m_peers[m_connected_players]->m_car_identifiers.emplace_back(m_car_identifier_counter);
 
         BroadcastMessage("New player");
+        InformWorldState(m_peers[m_connected_players]->m_socket);
+        NotifyPlayerSpawn(m_car_identifier_counter++);
 
         m_peers[m_connected_players]->m_socket.send(packet);
         m_peers[m_connected_players]->m_ready = true;
