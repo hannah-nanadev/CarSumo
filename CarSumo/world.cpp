@@ -228,8 +228,12 @@ void World::HandleCollisions()
 		{
 			auto& player1 = static_cast<Car&>(*pair.first);
 			auto& player2 = static_cast<Car&>(*pair.second);
-			//Collision response
-			player1.Damage(player2.GetHitPoints());
+			if(player1.GetIdentifier() != player2.GetIdentifier())
+			{
+				//Collision response
+				uint8_t damage = std::max(player1.GetHitPoints(), player2.GetHitPoints()) / 5;
+				player1.Damage(damage);
+			}
 		}
 	}
 }

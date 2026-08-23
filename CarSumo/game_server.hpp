@@ -32,6 +32,7 @@ private:
 	{
 		sf::Vector2f m_position;
 		uint8_t m_hitpoints;
+		uint8_t m_car_type;
 		std::map<uint8_t, bool> m_real_time_actions;
 	};
 
@@ -45,6 +46,8 @@ private:
 
 	void HandleIncomingPackets();
 	void HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving_peer, bool& detected_timeout);
+
+	sf::Vector2f ComputeSpawnPosition();
 
 	void HandleIncomingConnections();
 	void HandleDisconnections();

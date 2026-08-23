@@ -147,13 +147,13 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 
 		//Remove players whose car were destroyed
-		bool found_local_plane = false;
+		bool found_local_car = false;
 		for (auto itr = m_players.begin(); itr != m_players.end();)
 		{
-			//Check if there are no more local planes for remote clients
+			//Check if there are no more local cars for remote clients
 			if (std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), itr->first) != m_local_player_identifiers.end())
 			{
-				found_local_plane = true;
+				found_local_car = true;
 			}
 
 			if (!m_world.GetCar(itr->first))
@@ -172,7 +172,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 			}
 		}
 
-		if (!found_local_plane && m_game_started)
+		if (!found_local_car && m_game_started)
 		{
 			RequestStackPush(StateID::kP2Win);
 		}
@@ -392,6 +392,15 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, GetContext().keys1));
 		m_local_player_identifiers.push_back(car_identifier);
 		m_game_started = true;
+
+		//Send a message to the server to inform it of the car type of the connecting client
+		sf::Packet player_info_packet;
+		player_info_packet << static_cast<uint8_t>(Client::PacketType::kPlayerInformation)
+			<< car_identifier
+			<< static_cast<uint8_t>(m_player1_car_type)
+			<< car_position.x << car_position.y
+			<< static_cast<uint8_t>(car->GetHitPoints());
+		m_socket.send(player_info_packet);
 	}
 	break;
 
@@ -399,9 +408,9 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	{
 		uint8_t car_identifier;
 		sf::Vector2f car_position;
-		packet >> car_identifier >> car_position.x >> car_position.y;
-
-		Car* car = m_world.AddCar(car_identifier, m_player2_car_type);
+		uint8_t car_type;
+		packet >> car_identifier >> car_position.x >> car_position.y >> car_type;
+		Car* car = m_world.AddCar(car_identifier, static_cast<CarType>(car_type));
 		car->setPosition(car_position);
 		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));
 	}
@@ -419,17 +428,22 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	case Server::PacketType::kInitialState:
 	{
 		uint8_t car_count;
-
 		packet >> car_count;
+
+		std::cout << "Client kInitialState recieved " << car_count << " cars" << std::endl;
+
 		for (uint8_t i = 0; i < car_count; ++i)
 		{
 			uint8_t car_identifier;
 			uint8_t hitpoints;
-			uint8_t missile_ammo;
+			uint8_t car_type;
 			sf::Vector2f car_position;
-			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> missile_ammo;
+			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> car_type;
+			CarType incoming_car_type = static_cast<CarType>(car_type);
 
-			Car* car = m_world.AddCar(car_identifier, m_player1_car_type);
+			std::cout << "Client kInitialState car id " << +car_identifier << " pos (" << car_position.x << ", " << car_position.y << ") hp " << +hitpoints << " type " << CarTypeNames[car_type] << std::endl;
+
+			Car* car = m_world.AddCar(car_identifier, incoming_car_type);
 			car->setPosition(car_position);
 			car->SetHitpoints(hitpoints);
 
@@ -498,8 +512,8 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> ammo;
 
 			Car* car = m_world.GetCar(car_identifier);
-			bool is_local_plane = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), car_identifier) != m_local_player_identifiers.end();
-			if (car && !is_local_plane)
+			bool is_local_car = std::find(m_local_player_identifiers.begin(), m_local_player_identifiers.end(), car_identifier) != m_local_player_identifiers.end();
+			if (car && !is_local_car)
 			{
 				sf::Vector2f interpolated_position = car->getPosition() + (car_position - car->getPosition()) * 0.1f;
 				car->setPosition(interpolated_position);

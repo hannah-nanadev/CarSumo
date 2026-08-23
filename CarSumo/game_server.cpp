@@ -1,6 +1,7 @@
 #include "game_server.hpp"
 #include "network_protocol.hpp"
 #include "car_type.hpp"
+#include "data_tables.hpp"
 #include "utility.hpp"
 #include <SFML/Network/Packet.hpp>
 #include <SFML/System/Sleep.hpp>
@@ -12,7 +13,7 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
     , m_client_timeout(sf::seconds(1.f))
     , m_max_connected_players(20)
     , m_connected_players(0)
-    , m_world_height(5000.f)
+    , m_world_height(1024)
     , m_battlefield_rect(sf::Vector2f(0.f, m_world_height - battlefield_size.y),sf::Vector2f(battlefield_size.x, battlefield_size.y))
     , m_car_count(0)
     , m_peers(1)
@@ -34,7 +35,7 @@ void GameServer::NotifyPlayerSpawn(uint8_t car_identifier)
     sf::Packet packet;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerConnect);
-    packet << car_identifier << m_car_info[car_identifier].m_position.x << m_car_info[car_identifier].m_position.y;
+    packet << car_identifier << m_car_info[car_identifier].m_position.x << m_car_info[car_identifier].m_position.y << m_car_info[car_identifier].m_car_type;
     SendToAll(packet);
 }
 
@@ -198,6 +199,23 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
 
     switch (static_cast<Client::PacketType>(packet_type))
     {
+    case Client::PacketType::kPlayerInformation:
+    {
+		std::cout << "Server: Player Information" << std::endl;
+        uint8_t car_identifier;
+        uint8_t car_type;
+        sf::Vector2f car_position;
+        uint8_t hitpoints;
+        packet >> car_identifier >> car_type >> car_position.x >> car_position.y >> hitpoints;
+		m_car_info[car_identifier].m_car_type = car_type;
+        m_car_info[car_identifier].m_position = car_position;
+		m_car_info[car_identifier].m_hitpoints = hitpoints;
+
+        InformWorldState(m_peers[m_connected_players]->m_socket);
+        NotifyPlayerSpawn(m_car_identifier_counter++);
+    }
+    break;
+
     case Client::PacketType::kQuit:
     {
         receiving_peer.m_timed_out = true;
@@ -227,14 +245,16 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
     case Client::PacketType::kRequestCoopPartner:
     {
         receiving_peer.m_car_identifiers.emplace_back(m_car_identifier_counter);
-        m_car_info[m_car_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.size.x / 2, m_battlefield_rect.position.y + m_battlefield_rect.size.y / 2);
+        m_car_info[m_car_identifier_counter].m_position = ComputeSpawnPosition();
         m_car_info[m_car_identifier_counter].m_hitpoints = 100;
+		m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
 
         sf::Packet request_packet;
         request_packet << static_cast<uint8_t>(Server::PacketType::kAcceptCoopPartner);
         request_packet << m_car_identifier_counter;
         request_packet << m_car_info[m_car_identifier_counter].m_position.x;
         request_packet << m_car_info[m_car_identifier_counter].m_position.y;
+		request_packet << m_car_info[m_car_identifier_counter].m_car_type;
 
         receiving_peer.m_socket.send(request_packet);
         m_car_count++;
@@ -245,6 +265,7 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
         notify_packet << m_car_identifier_counter;
         notify_packet << m_car_info[m_car_identifier_counter].m_position.x;
         notify_packet << m_car_info[m_car_identifier_counter].m_position.y;
+		notify_packet << m_car_info[m_car_identifier_counter].m_car_type;
 
         for (PeerPtr& peer : m_peers)
         {
@@ -296,8 +317,10 @@ void GameServer::HandleIncomingConnections()
     if (m_listener_socket.accept(m_peers[m_connected_players]->m_socket) == sf::TcpListener::Status::Done)
     {
         //Order the new client to spawn its player 1
-        m_car_info[m_car_identifier_counter].m_position = sf::Vector2f(m_battlefield_rect.size.x / 2, m_battlefield_rect.position.y + m_battlefield_rect.size.y / 2);
+
+        m_car_info[m_car_identifier_counter].m_position = ComputeSpawnPosition();
         m_car_info[m_car_identifier_counter].m_hitpoints = 100;
+        m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
 
         sf::Packet packet;
         packet << static_cast<uint8_t>(Server::PacketType::kSpawnSelf);
@@ -308,8 +331,6 @@ void GameServer::HandleIncomingConnections()
         m_peers[m_connected_players]->m_car_identifiers.emplace_back(m_car_identifier_counter);
 
         BroadcastMessage("New player");
-        InformWorldState(m_peers[m_connected_players]->m_socket);
-        NotifyPlayerSpawn(m_car_identifier_counter++);
 
         m_peers[m_connected_players]->m_socket.send(packet);
         m_peers[m_connected_players]->m_ready = true;
@@ -377,7 +398,12 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
         {
             for (uint8_t identifier : m_peers[i]->m_car_identifiers)
             {
-                packet << identifier << m_car_info[identifier].m_position.x << m_car_info[identifier].m_position.y << m_car_info[identifier].m_hitpoints;
+                packet << identifier
+                    << m_car_info[identifier].m_position.x
+                    << m_car_info[identifier].m_position.y
+                    << m_car_info[identifier].m_hitpoints
+                    << static_cast<uint8_t>(m_car_info[identifier].m_car_type);
+                std::cout << "Informing world state: car id " << +identifier << " pos (" << m_car_info[identifier].m_position.x << ", " << m_car_info[identifier].m_position.y << ") hp " << +m_car_info[identifier].m_hitpoints << std::endl;
             }
         }
     }
@@ -432,4 +458,13 @@ GameServer::RemotePeer::RemotePeer()
     , m_timed_out(false)
 {
     m_socket.setBlocking(false);
+}
+
+sf::Vector2f GameServer::ComputeSpawnPosition() //TODO make them spawn in a circle around the center of the battlefield instead of a line
+{
+    float spawn_x = m_battlefield_rect.size.x / (m_max_connected_players + 1) * (m_connected_players + 1) + 50;
+    float spawn_y = (m_battlefield_rect.position.y + m_battlefield_rect.size.y / 2);
+
+	std::cout << "Spawn position: (" << spawn_x << ", " << spawn_y << ")" << std::endl;
+	return sf::Vector2f(spawn_x, spawn_y);
 }
