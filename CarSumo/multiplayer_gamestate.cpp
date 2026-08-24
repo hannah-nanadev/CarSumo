@@ -425,6 +425,19 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	}
 	break;
 
+	case Server::PacketType::kUpdateCarInfo:
+	{
+		std::cout << "Client kUpdateCarInfo" << std::endl;
+		uint8_t car_identifier;
+		uint8_t car_type;
+		packet >> car_identifier >> car_type;
+		Car* car = m_world.GetCar(car_identifier);
+		if (car)
+		{
+			car->SetCarType(static_cast<CarType>(car_type));
+		}
+	}
+
 	case Server::PacketType::kInitialState:
 	{
 		uint8_t car_count;

@@ -201,18 +201,23 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
     {
     case Client::PacketType::kPlayerInformation:
     {
-		std::cout << "Server: Player Information" << std::endl;
         uint8_t car_identifier;
         uint8_t car_type;
         sf::Vector2f car_position;
         uint8_t hitpoints;
         packet >> car_identifier >> car_type >> car_position.x >> car_position.y >> hitpoints;
+		std::cout << "Server: Player Information: car_identifier=" << car_identifier << ", car_type=" << CarTypeNames[car_type] << ", car_position=(" << car_position.x << ", " << car_position.y << "), hitpoints=" << +hitpoints << std::endl;
 		m_car_info[car_identifier].m_car_type = car_type;
         m_car_info[car_identifier].m_position = car_position;
 		m_car_info[car_identifier].m_hitpoints = hitpoints;
 
-        InformWorldState(m_peers[m_connected_players]->m_socket);
-        NotifyPlayerSpawn(m_car_identifier_counter++);
+		sf::Packet update_packet;
+		update_packet << static_cast<uint8_t>(Server::PacketType::kUpdateCarInfo);
+		update_packet << car_identifier;
+        update_packet << car_type;
+
+        m_peers[m_connected_players]->m_socket.send(update_packet);
+
     }
     break;
 
@@ -398,6 +403,7 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
     {
         if (m_peers[i]->m_ready)
         {
+			std::cout << "Informing world state to peer " << i << " with " << m_peers[i]->m_car_identifiers.size() << " cars" << std::endl;
             for (uint8_t identifier : m_peers[i]->m_car_identifiers)
             {
                 packet << identifier
@@ -407,6 +413,10 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
                     << static_cast<uint8_t>(m_car_info[identifier].m_car_type);
                 std::cout << "Informing world state: car id " << +identifier << " pos (" << m_car_info[identifier].m_position.x << ", " << m_car_info[identifier].m_position.y << ") hp " << +m_car_info[identifier].m_hitpoints << std::endl;
             }
+        }
+        else
+        {
+			std::cout << "Peer " << i << " is not ready, skipping" << std::endl;
         }
     }
 

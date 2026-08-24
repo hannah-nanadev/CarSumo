@@ -107,6 +107,17 @@ float Car::GetMaxTurnSpeed() const
 	return Table[static_cast<int>(m_type)].m_maxturnspeed;
 }
 
+CarType Car::GetCarType() const
+{
+	return m_type;
+}
+
+void Car::SetCarType(CarType type)
+{
+	m_type = type;
+	m_sprite.setTextureRect(Table[static_cast<int>(m_type)].m_texture_rect);
+}
+
 sf::FloatRect Car::GetBoundingRect() const
 {
 	return GetWorldTransform().transformRect(m_sprite.getGlobalBounds());

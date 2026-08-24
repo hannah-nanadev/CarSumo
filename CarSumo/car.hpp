@@ -20,6 +20,9 @@ public:
 	float GetTurnSpeed() const;
 	float GetMaxTurnSpeed() const;
 
+	CarType GetCarType() const;
+	void SetCarType(CarType type);
+
 	sf::FloatRect GetBoundingRect() const override;
 	bool IsMarkedForRemoval() const override;
 	void Remove() override;
