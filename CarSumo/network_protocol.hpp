@@ -23,7 +23,7 @@ namespace Client
 {
 	enum class PacketType
 	{
-		kPlayerInformation, //This is sent when the client connects to the server. It sends the car type and the initial position of the car
+		kPlayerInformation, //This is sent when the client connects to the server. It sends the car type
 		kPlayerEvent, // Two sf::Int32, car identifer and event. It is used to request the server to trigger an event on the car
 		kPlayerRealtimeChange, // The same kPlayerEvent, additionally takes a boolean for real time action
 		kRequestCoopPartner, //No parameters. It is sent when the user presses Return to request a local partner. The server will AcceptCoopPartner 

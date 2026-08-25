@@ -249,7 +249,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 			{
 				if (Car* car = m_world.GetCar(identifier))
 				{
-					position_update_packet << identifier << car->getPosition().x << car->getPosition().y << static_cast<uint8_t>(car->GetHitPoints());
+					position_update_packet << identifier << car->getPosition().x << car->getPosition().y << car->getRotation().asDegrees() << static_cast<uint8_t>(car->GetHitPoints());
 				}
 			}
 			m_socket.send(position_update_packet);
@@ -385,10 +385,12 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	{
 		uint8_t car_identifier;
 		sf::Vector2f car_position;
-		packet >> car_identifier >> car_position.x >> car_position.y;
+		float car_rotation;
+		packet >> car_identifier >> car_position.x >> car_position.y >> car_rotation;
 		std::cout << "Client kSpawnSelf" << +car_identifier << std::endl;
 		Car* car = m_world.AddCar(car_identifier, m_player1_car_type);
 		car->setPosition(car_position);
+		car->setRotation(sf::degrees(car_rotation));
 		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, GetContext().keys1));
 		m_local_player_identifiers.push_back(car_identifier);
 		m_game_started = true;
@@ -398,9 +400,10 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		player_info_packet << static_cast<uint8_t>(Client::PacketType::kPlayerInformation)
 			<< car_identifier
 			<< static_cast<uint8_t>(m_player1_car_type)
-			<< car_position.x << car_position.y
+			<< car_position.x << car_position.y << car_rotation
 			<< static_cast<uint8_t>(car->GetHitPoints());
 		m_socket.send(player_info_packet);
+		std::cout << "Sent player information back to server" << std::endl;
 	}
 	break;
 
@@ -408,10 +411,12 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 	{
 		uint8_t car_identifier;
 		sf::Vector2f car_position;
+		float car_rotation;
 		uint8_t car_type;
-		packet >> car_identifier >> car_position.x >> car_position.y >> car_type;
+		packet >> car_identifier >> car_position.x >> car_position.y >> car_rotation >> car_type;
 		Car* car = m_world.AddCar(car_identifier, static_cast<CarType>(car_type));
 		car->setPosition(car_position);
+		car->setRotation(sf::degrees(car_rotation));
 		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));
 	}
 	break;
@@ -430,13 +435,16 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		std::cout << "Client kUpdateCarInfo" << std::endl;
 		uint8_t car_identifier;
 		uint8_t car_type;
-		packet >> car_identifier >> car_type;
+		uint8_t hitpoints;
+		packet >> car_identifier >> car_type >> hitpoints;
 		Car* car = m_world.GetCar(car_identifier);
 		if (car)
 		{
 			car->SetCarType(static_cast<CarType>(car_type));
+			car->SetHitpoints(hitpoints);
 		}
 	}
+	break;
 
 	case Server::PacketType::kInitialState:
 	{
@@ -451,13 +459,15 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 			uint8_t hitpoints;
 			uint8_t car_type;
 			sf::Vector2f car_position;
-			packet >> car_identifier >> car_position.x >> car_position.y >> hitpoints >> car_type;
+			float car_rotation;
+			packet >> car_identifier >> car_position.x >> car_position.y >> car_rotation >> hitpoints >> car_type;
 			CarType incoming_car_type = static_cast<CarType>(car_type);
 
 			std::cout << "Client kInitialState car id " << +car_identifier << " pos (" << car_position.x << ", " << car_position.y << ") hp " << +hitpoints << " type " << CarTypeNames[car_type] << std::endl;
 
 			Car* car = m_world.AddCar(car_identifier, incoming_car_type);
 			car->setPosition(car_position);
+			car->setRotation(sf::degrees(car_rotation));
 			car->SetHitpoints(hitpoints);
 
 			m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));

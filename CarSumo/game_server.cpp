@@ -204,30 +204,22 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
         uint8_t car_identifier;
         uint8_t car_type;
         sf::Vector2f car_position;
+        float car_rotation;
         uint8_t hitpoints;
-        packet >> car_identifier >> car_type >> car_position.x >> car_position.y >> hitpoints;
+        packet >> car_identifier >> car_type >> car_position.x >> car_position.y >> car_rotation >> hitpoints;
 		std::cout << "Server: Player Information: car_identifier=" << char(car_identifier) << ", car_type=" << CarTypeNames[car_type] << ", car_position=(" << car_position.x << ", " << car_position.y << "), hitpoints=" << +hitpoints << std::endl;
 		m_car_info[car_identifier].m_car_type = car_type;
         m_car_info[car_identifier].m_position = car_position;
+        m_car_info[car_identifier].m_rotation = car_rotation;
 		m_car_info[car_identifier].m_hitpoints = hitpoints;
 
 		sf::Packet update_packet;
 		update_packet << static_cast<uint8_t>(Server::PacketType::kUpdateCarInfo);
 		update_packet << car_identifier;
         update_packet << car_type;
+        update_packet << hitpoints;
 
-        m_peers[m_connected_players]->m_socket.send(update_packet);
-        /* The below code causes instant read access violation that kills you instantly. I have zero clue why it does that
-        for (int i = 0; i < m_connected_players; ++i)
-        {
-            if (m_peers[i]->m_ready)
-            {
-                m_peers[i]->m_socket.send(update_packet);
-            }
-		}
-        */
-        
-
+        SendToAll(update_packet);
     }
     break;
 
@@ -261,6 +253,7 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
     {
         receiving_peer.m_car_identifiers.emplace_back(m_car_identifier_counter);
         m_car_info[m_car_identifier_counter].m_position = ComputeSpawnPosition();
+        m_car_info[m_car_identifier_counter].m_rotation = ComputeSpawnAngle().asDegrees();
         m_car_info[m_car_identifier_counter].m_hitpoints = 100;
 		m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
 
@@ -269,6 +262,7 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
         request_packet << m_car_identifier_counter;
         request_packet << m_car_info[m_car_identifier_counter].m_position.x;
         request_packet << m_car_info[m_car_identifier_counter].m_position.y;
+        request_packet << m_car_info[m_car_identifier_counter].m_rotation;
 		request_packet << m_car_info[m_car_identifier_counter].m_car_type;
 
         receiving_peer.m_socket.send(request_packet);
@@ -280,6 +274,7 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
         notify_packet << m_car_identifier_counter;
         notify_packet << m_car_info[m_car_identifier_counter].m_position.x;
         notify_packet << m_car_info[m_car_identifier_counter].m_position.y;
+        notify_packet << m_car_info[m_car_identifier_counter].m_rotation;
 		notify_packet << m_car_info[m_car_identifier_counter].m_car_type;
 
         for (PeerPtr& peer : m_peers)
@@ -303,8 +298,10 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
             uint8_t car_identifier;
             uint8_t car_hitpoints;
             sf::Vector2f car_position;
-            packet >> car_identifier >> car_position.x >> car_position.y >> car_hitpoints;
+            float car_rotation;
+            packet >> car_identifier >> car_position.x >> car_position.y >> car_rotation >> car_hitpoints;
             m_car_info[car_identifier].m_position = car_position;
+            m_car_info[car_identifier].m_rotation = car_rotation;
             m_car_info[car_identifier].m_hitpoints = car_hitpoints;
         }
     }
@@ -334,6 +331,7 @@ void GameServer::HandleIncomingConnections()
         //Order the new client to spawn its player 1
 
         m_car_info[m_car_identifier_counter].m_position = ComputeSpawnPosition();
+        m_car_info[m_car_identifier_counter].m_rotation = ComputeSpawnAngle().asDegrees();
         m_car_info[m_car_identifier_counter].m_hitpoints = 100;
         m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
 
@@ -342,6 +340,7 @@ void GameServer::HandleIncomingConnections()
         packet << m_car_identifier_counter;
         packet << m_car_info[m_car_identifier_counter].m_position.x;
         packet << m_car_info[m_car_identifier_counter].m_position.y;
+        packet << m_car_info[m_car_identifier_counter].m_rotation;
 
         m_peers[m_connected_players]->m_car_identifiers.emplace_back(m_car_identifier_counter);
 
@@ -418,6 +417,7 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
                 packet << identifier
                     << m_car_info[identifier].m_position.x
                     << m_car_info[identifier].m_position.y
+                    << m_car_info[identifier].m_rotation
                     << m_car_info[identifier].m_hitpoints
                     << static_cast<uint8_t>(m_car_info[identifier].m_car_type);
                 std::cout << "Informing world state: car id " << +identifier << " pos (" << m_car_info[identifier].m_position.x << ", " << m_car_info[identifier].m_position.y << ") hp " << +m_car_info[identifier].m_hitpoints << std::endl;
@@ -488,4 +488,9 @@ sf::Vector2f GameServer::ComputeSpawnPosition() //TODO make them spawn in a circ
 
 	std::cout << "Spawn position: (" << spawn_x << ", " << spawn_y << ")" << std::endl;
 	return sf::Vector2f(spawn_x, spawn_y);
+}
+
+sf::Angle GameServer::ComputeSpawnAngle()
+{
+    return sf::degrees(-90.f); //TODO make this rotate them properly in circle
 }
