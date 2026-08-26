@@ -20,6 +20,8 @@ public:
 	float GetTurnSpeed() const;
 	float GetMaxTurnSpeed() const;
 
+	void Knockback();
+
 	CarType GetCarType() const;
 	void SetCarType(CarType type);
 

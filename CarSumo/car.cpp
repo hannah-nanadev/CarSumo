@@ -123,6 +123,13 @@ sf::FloatRect Car::GetBoundingRect() const
 	return GetWorldTransform().transformRect(m_sprite.getGlobalBounds());
 }
 
+void Car::Knockback()
+{
+	sf::Vector2f direction = GetDirection();
+	direction = sf::Vector2f(direction.x * kKnockbackMagnitude, direction.y * kKnockbackMagnitude);
+	SetVelocity(direction);
+}
+
 bool Car::IsMarkedForRemoval() const
 {
 	return IsDestroyed() && (m_explosion.IsFinished() || !m_show_explosion);

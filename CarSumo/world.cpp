@@ -231,8 +231,11 @@ void World::HandleCollisions()
 			if(player1.GetIdentifier() != player2.GetIdentifier())
 			{
 				//Collision response
-				uint8_t damage = std::max(player1.GetHitPoints(), player2.GetHitPoints()) / 5;
-				player1.Damage(damage);
+				player1.Damage(kDamage);
+				player1.Knockback();
+
+				player2.Damage(kDamage);
+				player2.Knockback();
 			}
 		}
 	}

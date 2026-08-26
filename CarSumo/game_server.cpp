@@ -35,7 +35,7 @@ void GameServer::NotifyPlayerSpawn(uint8_t car_identifier)
     sf::Packet packet;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerConnect);
-    packet << car_identifier << m_car_info[car_identifier].m_position.x << m_car_info[car_identifier].m_position.y << m_car_info[car_identifier].m_car_type;
+    packet << car_identifier << m_car_info[car_identifier].m_position.x << m_car_info[car_identifier].m_position.y << m_car_info[car_identifier].m_rotation << m_car_info[car_identifier].m_car_type;
     SendToAll(packet);
 }
 
