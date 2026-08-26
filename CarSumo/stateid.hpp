@@ -11,8 +11,7 @@ enum class StateID
 	kPause,
 	kNetworkPause,
 	kSettings,
-	kP1Win,
-	kP2Win,
+	kGameOver,
 	kDraw,
 	kHostGame,
 	kJoinGame

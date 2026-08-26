@@ -90,8 +90,7 @@ void Application::RegisterStates()
 	m_stack.RegisterState<PauseState>(StateID::kPause);
 	m_stack.RegisterState<PauseState>(StateID::kNetworkPause, true);
 	m_stack.RegisterState<SettingsState>(StateID::kSettings);
-	m_stack.RegisterState<GameOverState>(StateID::kP2Win, "Player 2 Win!");
-	m_stack.RegisterState<GameOverState>(StateID::kP1Win, "Player 1 Win!");
+	m_stack.RegisterState<GameOverState>(StateID::kGameOver, "Game Over!");
 	m_stack.RegisterState<GameOverState>(StateID::kDraw, "Draw...");
 }
 

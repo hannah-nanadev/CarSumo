@@ -163,7 +163,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 
 		if (!found_local_car && m_game_started)
 		{
-			RequestStackPush(StateID::kP2Win);
+			RequestStackPush(StateID::kGameOver);
 		}
 
 		//Only handle the realtime input if the window has focus and the game is unpaused
