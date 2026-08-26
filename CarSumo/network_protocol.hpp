@@ -11,7 +11,6 @@ namespace Server
 		kPlayerRealtimeChange, //Same as playerevent for real time actions
 		kPlayerConnect, //The same as SpawnSelf but indicates that an car from a different client is connecting
 		kPlayerDisconnect, //Takes sf::Int32 car identifier that is disconnecting
-		kAcceptCoopPartner, //This says we are free to spawn another local plane. It takes sf::Int32 and two float values with the id of the hot seat multiplayer and its position
 		kSpawnSelf, //This takes an sf::Int32 for the car identifier and two float values for the initial position. 
 		kUpdateCarInfo, //Only takes car identifier and new car type. Used to ensure cars are the correct type on all clients since I don't know how else to ensure this
 		kUpdateClientState, //This takes one float with the current scrolling of the world in the server, and then a sf::Int32 for the number of car. For each car, it packs one sf::Int32 value with the identifier, two floats for position, health, and ammo. Think about enemies. If we don't send anything they will be locally tracked
@@ -26,7 +25,6 @@ namespace Client
 		kPlayerInformation, //This is sent when the client connects to the server. It sends the car type
 		kPlayerEvent, // Two sf::Int32, car identifer and event. It is used to request the server to trigger an event on the car
 		kPlayerRealtimeChange, // The same kPlayerEvent, additionally takes a boolean for real time action
-		kRequestCoopPartner, //No parameters. It is sent when the user presses Return to request a local partner. The server will AcceptCoopPartner 
 		kStateUpdate, //sf::Int32 with number of local car, for each car send sf::Int32 identifier, two floats for position, health and ammo 
 		kGameEvent, //This is for explosions
 		kQuit

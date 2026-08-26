@@ -249,45 +249,6 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
     }
     break;
 
-    case Client::PacketType::kRequestCoopPartner:
-    {
-        receiving_peer.m_car_identifiers.emplace_back(m_car_identifier_counter);
-        m_car_info[m_car_identifier_counter].m_position = ComputeSpawnPosition();
-        m_car_info[m_car_identifier_counter].m_rotation = ComputeSpawnAngle().asDegrees();
-        m_car_info[m_car_identifier_counter].m_hitpoints = 100;
-		m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
-
-        sf::Packet request_packet;
-        request_packet << static_cast<uint8_t>(Server::PacketType::kAcceptCoopPartner);
-        request_packet << m_car_identifier_counter;
-        request_packet << m_car_info[m_car_identifier_counter].m_position.x;
-        request_packet << m_car_info[m_car_identifier_counter].m_position.y;
-        request_packet << m_car_info[m_car_identifier_counter].m_rotation;
-		request_packet << m_car_info[m_car_identifier_counter].m_car_type;
-
-        receiving_peer.m_socket.send(request_packet);
-        m_car_count++;
-
-        // Tell everyone else about the new car
-        sf::Packet notify_packet;
-        notify_packet << static_cast<uint8_t>(Server::PacketType::kPlayerConnect);
-        notify_packet << m_car_identifier_counter;
-        notify_packet << m_car_info[m_car_identifier_counter].m_position.x;
-        notify_packet << m_car_info[m_car_identifier_counter].m_position.y;
-        notify_packet << m_car_info[m_car_identifier_counter].m_rotation;
-		notify_packet << m_car_info[m_car_identifier_counter].m_car_type;
-
-        for (PeerPtr& peer : m_peers)
-        {
-            if (peer.get() != &receiving_peer && peer->m_ready)
-            {
-                peer->m_socket.send(notify_packet);
-            }
-        }
-        m_car_identifier_counter++;
-    }
-    break;
-
     case Client::PacketType::kStateUpdate:
     {
         uint8_t num_car;

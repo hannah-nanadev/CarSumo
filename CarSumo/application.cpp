@@ -82,7 +82,7 @@ void Application::RegisterStates()
 	m_stack.RegisterState<TitleState>(StateID::kTitle);
 	m_stack.RegisterState<MenuState>(StateID::kMenu);
 	m_stack.RegisterState<SelectCarState>(StateID::kCarSelectSolo, 1, StateID::kGame);
-	m_stack.RegisterState<SelectCarState>(StateID::kCarSelectHost, 2, StateID::kHostGame);
+	m_stack.RegisterState<SelectCarState>(StateID::kCarSelectHost, 1, StateID::kHostGame);
 	m_stack.RegisterState<SelectCarState>(StateID::kCarSelectJoin, 1, StateID::kJoinGame);
 	m_stack.RegisterState<GameState>(StateID::kGame);
 	m_stack.RegisterState<MultiplayerGameState>(StateID::kHostGame, true);
