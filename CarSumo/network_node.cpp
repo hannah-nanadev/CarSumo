@@ -1,3 +1,5 @@
+//Hannah Kellett D00260463
+
 #include "network_node.hpp"
 NetworkNode::NetworkNode()
 	: SceneNode()

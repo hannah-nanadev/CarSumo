@@ -1,3 +1,5 @@
+//Hannah Kellett D00260463
+
 #include "emitter_node.hpp"
 
 EmitterNode::EmitterNode(ParticleType type)

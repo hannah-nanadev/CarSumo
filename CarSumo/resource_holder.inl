@@ -1,4 +1,7 @@
+//Hannah Kellett D00260463
+
 //TODO ?? can we preinstantiate each type and write as .hpp and .cpp
+//no we can't. sorry chief this codebase is an enigma to me and this project was due months ago at this point
 #pragma once
 #include "resource_holder.hpp"
 #include <string>
