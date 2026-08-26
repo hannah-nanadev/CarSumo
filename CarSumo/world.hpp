@@ -28,7 +28,6 @@ public:
 
 	bool HasAlivePlayer() const;
 
-	void SetWorldScrollCompensation(float compensation);
 	Car* GetCar(int identifier) const;
 	bool PollGameAction(GameActions::Action& out);
 
