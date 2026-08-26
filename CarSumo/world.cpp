@@ -230,12 +230,15 @@ void World::HandleCollisions()
 			auto& player2 = static_cast<Car&>(*pair.second);
 			if(player1.GetIdentifier() != player2.GetIdentifier())
 			{
+				sf::Vector2f p1Pos = player1.getPosition();
+				sf::Vector2f p2Pos = player2.getPosition();
+
 				//Collision response
 				player1.Damage(kDamage);
-				player1.Knockback();
+				player1.Knockback(p2Pos);
 
 				player2.Damage(kDamage);
-				player2.Knockback();
+				player2.Knockback(p1Pos);
 			}
 		}
 	}

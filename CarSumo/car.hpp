@@ -20,7 +20,7 @@ public:
 	float GetTurnSpeed() const;
 	float GetMaxTurnSpeed() const;
 
-	void Knockback();
+	void Knockback(sf::Vector2f otherPosition);
 
 	CarType GetCarType() const;
 	void SetCarType(CarType type);

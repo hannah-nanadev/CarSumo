@@ -123,10 +123,19 @@ sf::FloatRect Car::GetBoundingRect() const
 	return GetWorldTransform().transformRect(m_sprite.getGlobalBounds());
 }
 
-void Car::Knockback()
+void Car::Knockback(sf::Vector2f otherPosition)
 {
+	/*
 	sf::Vector2f direction = GetDirection();
 	direction = sf::Vector2f(direction.x * kKnockbackMagnitude, direction.y * kKnockbackMagnitude);
+	SetVelocity(direction);
+	*/
+	sf::Vector2f position = getPosition();
+	sf::Vector2f direction = sf::Vector2f(otherPosition.x - position.x, otherPosition.y - position.y);
+	float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+	direction = direction / distance;
+	direction = sf::Vector2f(direction.x * kKnockbackMagnitude, direction.y * kKnockbackMagnitude);
+
 	SetVelocity(direction);
 }
 
